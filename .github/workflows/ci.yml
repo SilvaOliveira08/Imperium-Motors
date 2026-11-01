@@ -37,7 +37,7 @@ jobs:
 
       - name: Relatórios dos testes
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorios-testes
           path: target/surefire-reports/
@@ -64,7 +64,7 @@ jobs:
 
       - name: Relatórios dos testes
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relatorios-testes-postgres
           path: target/surefire-reports/
