@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Interessados')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('propostas')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <div class="titulo-pagina">
+        <div>
+            <h1>Interessados</h1>
+            <p class="suave">Dúvidas, test drives, propostas e pedidos de financiamento enviados pela loja.</p>
+        </div>
+    </div>
+    <nav class="filtro-abas" aria-label="Filtrar por situação">
+        <a th:href="@{/propostas}" th:classappend="${filtro == null} ? 'ativo'">Todos</a>
+        <a th:each="s : ${situacoes}" th:href="@{/propostas(status=${s.name()})}" th:text="${s.descricao}"
+           th:classappend="${filtro == s} ? 'ativo'"></a>
+    </nav>
+    <section class="cartao">
+        <p th:if="${propostas.isEmpty()}" class="suave">Nenhum contato nesta situação.</p>
+        <ul class="lista-contatos lista-contatos-grande">
+            <th:block th:each="p : ${propostas}"><li th:replace="~{fragmentos/contato :: contato(${p}, '/propostas')}"></li></th:block>
+        </ul>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+
+</body>
+</html>

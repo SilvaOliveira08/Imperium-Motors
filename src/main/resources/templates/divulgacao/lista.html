@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Divulgação')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('divulgacao')}"></header>
+<main class="container" th:with="v=${visao}">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <div class="titulo-pagina">
+        <div>
+            <h1>Divulgação</h1>
+            <p class="suave">Onde cada carro está anunciado e de qual canal vieram os interessados. Abra um carro para pegar textos e fotos prontos.</p>
+        </div>
+    </div>
+
+    <section class="cartao" th:unless="${v.pendentes.isEmpty()}">
+        <h2>Tire do ar</h2>
+        <p class="suave">Estes carros foram vendidos ou saíram da loja, mas continuam marcados como publicados.
+            Apague o anúncio no site ou rede social e clique em <strong>Já tirei</strong>.</p>
+        <ul class="lista-pendencias">
+            <li th:each="l : ${v.pendentes}">
+                <a th:href="@{/divulgacao/{id}(id=${l.anuncio.id})}" th:text="${l.anuncio.titulo}"></a>
+                <span class="etiqueta" th:text="${l.anuncio.status.descricao}"></span>
+                <span class="pendencia-canais">
+                    <form th:each="p : ${l.ativas.values()}" th:action="@{/divulgacao/{id}/canais/{c}/tirar(id=${l.anuncio.id},c=${p.canal.codigo})}"
+                          method="post" class="form-inline">
+                        <input type="hidden" name="voltar" value="lista">
+                        <button type="submit" class="botao botao-secundario botao-pequeno" th:text="|Já tirei do ${p.canal.descricao}|"></button>
+                    </form>
+                </span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="cartao">
+        <h2>Interessados por canal</h2>
+        <div class="indicadores">
+            <div class="indicador" th:each="c : ${canais}">
+                <strong th:text="${v.contatosPorCanal.get(c)}"></strong>
+                <span th:text="${c.descricao}"></span>
+            </div>
+            <div class="indicador">
+                <strong th:text="${v.contatosDiretos}"></strong>
+                <span>Direto pelo site</span>
+            </div>
+        </div>
+        <p class="suave nota">Conta os contatos que chegaram pelos links dos textos prontos (eles levam a marcação do canal).</p>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-titulo">
+            <h2 th:text="|Carros à venda (${v.naLoja.size()})|">Carros à venda</h2>
+        </div>
+        <p th:if="${v.naLoja.isEmpty()}" class="suave">Nenhum carro na loja agora.</p>
+        <div class="tabela-rolagem" th:unless="${v.naLoja.isEmpty()}">
+            <table class="tabela tabela-divulgacao">
+                <thead>
+                <tr>
+                    <th>Carro</th>
+                    <th>Preço</th>
+                    <th th:each="c : ${canais}" class="centro" th:text="${c.descricao}"></th>
+                    <th class="centro">Contatos</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${v.naLoja}">
+                    <td><a th:href="@{/divulgacao/{id}(id=${l.anuncio.id})}" th:text="${l.anuncio.titulo}"></a>
+                        <span class="suave" th:text="| · ${l.anuncio.anos}|"></span>
+                        <span th:if="${l.ativas.isEmpty()}" class="etiqueta etiqueta-alerta">Não divulgado</span></td>
+                    <td class="nowrap" th:text="${@fmt.preco(l.anuncio.preco)}"></td>
+                    <td th:each="c : ${canais}" class="centro">
+                        <span th:if="${l.ativas.containsKey(c)}" class="marca-canal ativo"
+                              th:title="|Publicado em ${#temporals.format(l.ativas.get(c).publicadaEm, 'dd/MM/yyyy')}|">✓</span>
+                        <span th:unless="${l.ativas.containsKey(c)}" class="marca-canal" title="Não publicado">–</span>
+                    </td>
+                    <td class="centro" th:text="${l.contatosDosCanais}"></td>
+                    <td><a class="botao botao-secundario" th:href="@{/divulgacao/{id}(id=${l.anuncio.id})}">Divulgar</a></td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th colspan="2">Carros publicados</th>
+                    <th th:each="c : ${canais}" class="centro" th:text="${v.carrosPorCanal.get(c)}"></th>
+                    <th colspan="2"></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

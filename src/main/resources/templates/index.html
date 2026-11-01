@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Painel')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('inicio')}"></header>
+<main class="container" th:with="i=${indicadores}">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <div class="titulo-pagina">
+        <div>
+            <h1>Painel da loja</h1>
+            <p class="suave">Estoque, vendas e interessados, com as planilhas e fichas técnicas que alimentam a loja.</p>
+        </div>
+        <div class="acoes">
+            <a class="botao" th:href="@{/anuncios/novo}">+ Anunciar carro</a>
+            <a class="botao botao-secundario" th:href="@{/fichas/nova}">+ Nova ficha</a>
+        </div>
+    </div>
+
+    <section class="cartao aviso-demo" th:if="${i.emEstoque == 0 and i.vendasTotal == 0}">
+        <h2>Comece por aqui</h2>
+        <ol class="etapas">
+            <li>Crie a <a th:href="@{/fichas/nova}">ficha técnica</a> do carro pela placa ou pelo documento e conclua a revisão.</li>
+            <li>Em <a th:href="@{/anuncios/novo}">Anunciar carro</a>, escolha a ficha, informe preço, quilometragem e fotos.</li>
+            <li>O carro aparece na <a th:href="@{/}" target="_blank">loja</a>. Lance os custos, acompanhe os interessados e registre a venda.</li>
+        </ol>
+        <form th:action="@{/painel/demonstracao}" method="post">
+            <button type="submit" class="botao botao-secundario">Carregar carros de demonstração</button>
+            <small class="suave">Cria cerca de 25 carros fictícios com ficha técnica, despesas, interessados e vendas dos últimos meses.</small>
+        </form>
+    </section>
+
+    <div class="indicadores">
+        <div class="indicador"><strong th:text="${i.emEstoque}"></strong><span th:text="|carros em estoque (${i.naLoja} na loja)|"></span></div>
+        <div class="indicador"><strong th:text="${@fmt.preco(i.valorEstoque)}"></strong><span th:text="|valor anunciado · custo ${@fmt.preco(i.custoEstoque)}|"></span></div>
+        <div class="indicador"><strong th:text="${i.vendasMes}"></strong><span th:text="|venda(s) no mês · ${@fmt.preco(i.faturamentoMes)}|"></span></div>
+        <div class="indicador" th:classappend="${i.lucroMes.signum() < 0} ? 'atencao'"><strong th:text="${@fmt.preco(i.lucroMes)}"></strong><span>lucro no mês</span></div>
+        <div class="indicador"><strong th:text="${@fmt.preco(i.ticketMedio)}"></strong><span th:text="|ticket médio (${i.vendasTotal} vendas)|"></span></div>
+        <div class="indicador"><strong th:text="${i.diasMediosEstoque}"></strong><span>dias em média até vender</span></div>
+        <a class="indicador indicador-link" th:href="@{/propostas(status='NOVA')}" th:classappend="${i.propostasNovas > 0} ? 'atencao'">
+            <strong th:text="${i.propostasNovas}"></strong><span>interessado(s) aguardando resposta</span></a>
+    </div>
+
+    <div class="grade-lateral">
+        <div>
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <h2>Vendas nos últimos 6 meses</h2>
+                    <a th:href="@{/painel/exportar/vendas}">Exportar XLSX</a>
+                </div>
+                <div class="grafico-barras" role="img" aria-label="Faturamento por mês">
+                    <div class="barra-mes" th:each="m : ${i.ultimosMeses}">
+                        <span class="barra-valor" th:text="${m.quantidade > 0} ? ${@fmt.preco(m.faturamento)} : ''"></span>
+                        <svg class="barra" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true">
+                            <rect x="0" th:attr="y=${100 - i.percentualBarra(m)},height=${i.percentualBarra(m)}" width="10"></rect>
+                        </svg>
+                        <span class="barra-rotulo" th:text="${m.rotulo}"></span>
+                        <small class="suave" th:text="|${m.quantidade} venda(s)|"></small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <h2>Últimas vendas</h2>
+                    <a th:href="@{/anuncios}">Ver estoque</a>
+                </div>
+                <p th:if="${i.ultimasVendas.isEmpty()}" class="suave">Nenhuma venda registrada ainda.</p>
+                <div class="tabela-rolagem" th:unless="${i.ultimasVendas.isEmpty()}">
+                    <table class="tabela">
+                        <thead><tr><th>Data</th><th>Carro</th><th>Comprador</th><th>Valor</th></tr></thead>
+                        <tbody>
+                        <tr th:each="a : ${i.ultimasVendas}">
+                            <td th:text="${#temporals.format(a.venda.data, 'dd/MM/yyyy')}"></td>
+                            <td><a th:href="@{/anuncios/{id}(id=${a.id})}" th:text="${a.titulo}"></a></td>
+                            <td th:text="${a.venda.compradorNome}"></td>
+                            <td class="nowrap" th:text="${@fmt.moeda(a.venda.valor)}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div>
+            <section class="cartao">
+                <div class="cartao-titulo">
+                    <h2>Novos interessados</h2>
+                    <a th:href="@{/propostas}">Ver todos</a>
+                </div>
+                <p th:if="${contatosNovos.isEmpty()}" class="suave">Nenhum contato novo.</p>
+                <ul class="lista-contatos" th:unless="${contatosNovos.isEmpty()}">
+                    <li th:each="p : ${contatosNovos}">
+                        <strong th:text="${p.nome}"></strong>
+                        <span class="etiqueta" th:text="${p.tipo.descricao}"></span><br>
+                        <a th:href="@{/anuncios/{id}(id=${p.anuncio.id})}" th:text="${p.anuncio.titulo}"></a>
+                        <small class="suave" th:text="${#temporals.format(p.criadaEm, 'dd/MM HH:mm')}"></small>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="cartao">
+                <h2>Relatórios</h2>
+                <ul class="lista-links">
+                    <li><a th:href="@{/painel/exportar/estoque}">Estoque com custos e margem (XLSX)</a></li>
+                    <li><a th:href="@{/painel/exportar/despesas}">Despesas por carro (XLSX)</a></li>
+                    <li><a th:href="@{/painel/exportar/vendas}">Vendas com lucro (XLSX)</a></li>
+                </ul>
+                <small class="suave">Os arquivos podem ser importados em <a th:href="@{/planilhas}">Planilhas</a> para organizar e combinar com outros dados.</small>
+            </section>
+
+            <a class="modulo" th:href="@{/planilhas}">
+                <span class="modulo-icone">▦</span>
+                <h2>Planilhas</h2>
+                <p>Importe XLSX ou CSV, padronize, una arquivos por CPF, placa ou código e exporte.</p>
+                <span class="modulo-rodape" th:text="|${totalPlanilhas} planilha(s) importada(s)|"></span>
+            </a>
+            <a class="modulo" th:href="@{/fichas}">
+                <span class="modulo-icone">🚗</span>
+                <h2>Fichas técnicas</h2>
+                <p>Monte a ficha pela placa ou documento, confirme os dados e gere o PDF. Ficha concluída vira anúncio.</p>
+                <span class="modulo-rodape" th:text="|${totalFichas} ficha(s)|"></span>
+            </a>
+        </div>
+    </div>
+
+    <section class="cartao">
+        <div class="cartao-titulo">
+            <h2>Atividade recente</h2>
+            <a th:href="@{/historico}">Ver tudo</a>
+        </div>
+        <p th:if="${recentes.isEmpty()}" class="suave">Nenhuma operação ainda.</p>
+        <ul class="historico" th:unless="${recentes.isEmpty()}">
+            <li th:each="r : ${recentes}">
+                <span class="etiqueta" th:text="${r.operacao.descricao}"></span>
+                <span th:text="${r.detalhes}"></span>
+                <time th:text="${#temporals.format(r.realizadoEm, 'dd/MM HH:mm')}"></time>
+            </li>
+        </ul>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

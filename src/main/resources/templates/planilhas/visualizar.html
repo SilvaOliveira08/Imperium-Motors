@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head(${planilha.nome})}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('planilhas')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <a th:href="@{/planilhas}" class="voltar">← Planilhas</a>
+    <div class="titulo-pagina">
+        <h1 th:text="${planilha.nome}"></h1>
+        <form th:action="@{/planilhas/{id}/editar(id=${arquivoId})}" method="post">
+            <button class="botao" type="submit">Organizar esta planilha →</button>
+        </form>
+    </div>
+    <div th:replace="~{fragmentos/layout :: qualidade}"></div>
+    <section class="cartao">
+        <h2>Pré-visualização</h2>
+        <th:block th:replace="~{fragmentos/layout :: tabelaPlanilha}"></th:block>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

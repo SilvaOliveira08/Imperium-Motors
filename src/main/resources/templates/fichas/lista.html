@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Fichas técnicas')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('fichas')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <div class="titulo-pagina">
+        <h1>Fichas técnicas</h1>
+        <a class="botao" th:href="@{/fichas/nova}">+ Nova ficha</a>
+    </div>
+    <section class="cartao">
+        <p th:if="${fichas.isEmpty()}" class="suave">Nenhuma ficha criada. Clique em <strong>Nova ficha</strong> e informe a placa ou envie um documento.</p>
+        <div class="tabela-rolagem" th:unless="${fichas.isEmpty()}">
+            <table class="tabela">
+                <thead><tr><th>Placa</th><th>Veículo</th><th>Situação</th><th>Pendências</th><th>Atualizada</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="f : ${fichas}">
+                    <td><a th:href="@{/fichas/{id}(id=${f.id})}" class="placa" th:text="${f.veiculo.placaFormatada}"></a></td>
+                    <td th:with="m=${f.campo(T(br.com.dataflowauto.fichas.dominio.CampoTecnico).MARCA)},
+                                 mo=${f.campo(T(br.com.dataflowauto.fichas.dominio.CampoTecnico).MODELO)}"
+                        th:text="${(m.valor ?: '') + ' ' + (mo.valor ?: '')}"></td>
+                    <td><span class="etiqueta" th:classappend="${f.status.name() == 'CONCLUIDA'} ? 'etiqueta-ok' : 'etiqueta-alerta'"
+                              th:text="${f.status.descricao}"></span></td>
+                    <td th:text="${f.camposPendentes().size()}"></td>
+                    <td class="nowrap" th:text="${#temporals.format(f.atualizadaEm, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td class="acoes">
+                        <a class="botao botao-secundario" th:href="@{/fichas/{id}(id=${f.id})}">Revisar</a>
+                        <a class="botao botao-secundario" th:href="@{/fichas/{id}/pdf(id=${f.id})}" target="_blank">PDF</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

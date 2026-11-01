@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Histórico')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('historico')}"></header>
+<main class="container">
+    <h1>Histórico de operações</h1>
+    <section class="cartao">
+        <p th:if="${registros.isEmpty()}" class="suave">Nenhuma operação registrada.</p>
+        <div class="tabela-rolagem" th:unless="${registros.isEmpty()}">
+            <table class="tabela">
+                <thead><tr><th>Data</th><th>Operação</th><th>Detalhes</th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${registros}">
+                    <td class="nowrap" th:text="${#temporals.format(r.realizadoEm, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td><span class="etiqueta" th:text="${r.operacao.descricao}"></span></td>
+                    <td th:text="${r.detalhes}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

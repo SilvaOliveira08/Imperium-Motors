@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Estoque')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('anuncios')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <div th:if="${problemasImportacao != null and !problemasImportacao.isEmpty()}" class="aviso">
+        <strong th:text="|${problemasImportacao.size()} linha(s) não importada(s):|"></strong>
+        <ul class="lista-vazios"><li th:each="p : ${problemasImportacao}" th:text="${p}"></li></ul>
+    </div>
+    <div class="titulo-pagina">
+        <div>
+            <h1>Estoque</h1>
+            <p class="suave">Carros anunciados, reservados, fora da loja e vendidos.</p>
+        </div>
+        <div class="acoes">
+            <a class="botao" th:href="@{/anuncios/novo}">+ Anunciar carro</a>
+            <a class="botao botao-secundario" th:href="@{/painel/exportar/estoque}">Exportar XLSX</a>
+        </div>
+    </div>
+
+    <section class="cartao" th:unless="${fichasProntas.isEmpty()}">
+        <h2>Fichas prontas para anunciar</h2>
+        <div class="acoes">
+            <a th:each="f : ${fichasProntas}" class="botao botao-secundario" th:href="@{/anuncios/novo(ficha=${f.id})}"
+               th:text="|${f.veiculo.placaFormatada} · ${f.veiculo.descricao}|"></a>
+        </div>
+    </section>
+
+    <section class="cartao">
+        <p th:if="${anuncios.isEmpty()}" class="suave">Nenhum carro anunciado. Conclua uma <a th:href="@{/fichas}">ficha técnica</a> e clique em <strong>Anunciar carro</strong>.</p>
+        <div class="tabela-rolagem" th:unless="${anuncios.isEmpty()}">
+            <table class="tabela">
+                <thead><tr><th>Placa</th><th>Carro</th><th>Ano</th><th>KM</th><th>Preço</th><th>Situação</th><th>Fotos</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="a : ${anuncios}">
+                    <td><span class="placa" th:text="${a.veiculo.placaFormatada}"></span></td>
+                    <td><a th:href="@{/anuncios/{id}(id=${a.id})}" th:text="${a.titulo}"></a>
+                        <span th:if="${a.destaque}" class="etiqueta">Destaque</span>
+                        <span th:if="${!a.estaVendido() and a.status.visivelNaLoja and !a.estaNaLoja()}" class="etiqueta etiqueta-alerta"
+                              title="A ficha técnica voltou para revisão">Ficha em revisão</span></td>
+                    <td th:text="${a.anos}"></td>
+                    <td class="nowrap" th:text="${@fmt.km(a.quilometragem)}"></td>
+                    <td class="nowrap" th:text="${a.estaVendido()} ? ${@fmt.moeda(a.venda.valor)} : ${@fmt.moeda(a.preco)}"></td>
+                    <td><span class="etiqueta" th:classappend="${a.status.name() == 'DISPONIVEL'} ? 'etiqueta-ok' : (${a.status.name() == 'RESERVADO'} ? 'etiqueta-alerta' : '')"
+                              th:text="${a.status.descricao}"></span></td>
+                    <td th:text="${a.fotos.size()}"></td>
+                    <td class="acoes">
+                        <a class="botao botao-secundario" th:href="@{/anuncios/{id}(id=${a.id})}">Gerenciar</a>
+                        <a class="botao botao-secundario" th:if="${a.estaNaLoja()}" th:href="@{/loja/carros/{id}(id=${a.id})}" target="_blank">Ver na loja</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="cartao">
+        <h2>Importar despesas de uma planilha</h2>
+        <p class="suave">Envie um XLSX ou CSV com as colunas <strong>Data</strong>, <strong>Placa</strong>, <strong>Categoria</strong>, <strong>Descrição</strong> e <strong>Valor</strong>.
+            A planilha <em>Controle_Despesas_Veiculos.xlsx</em> é aceita direto (aba "Despesas"). Cada linha é ligada ao carro pela placa.</p>
+        <form th:action="@{/anuncios/despesas/importar}" method="post" enctype="multipart/form-data" class="upload">
+            <label class="area-upload">
+                <input type="file" name="arquivo" accept=".xlsx,.csv" required>
+                Escolha o arquivo de despesas
+            </label>
+            <button type="submit" class="botao">Importar</button>
+        </form>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

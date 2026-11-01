@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Nova ficha')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('fichas')}"></header>
+<main class="container estreito">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <a th:href="@{/fichas}" class="voltar">← Fichas técnicas</a>
+    <h1>Nova ficha técnica</h1>
+    <p class="suave">Basta a placa: o sistema consulta as fontes e preenche sozinho os dados técnicos,
+        a procedência (roubo/furto, leilão, sinistro, restrições, recall), as multas, os débitos e os proprietários.</p>
+    <form th:action="@{/fichas}" method="post" enctype="multipart/form-data" class="cartao formulario">
+        <label>Placa do veículo *
+            <input type="text" name="placa" required maxlength="8" placeholder="ABC1D23" class="placa-input"
+                   pattern="[A-Za-z]{3}-?[0-9][A-Za-z0-9][0-9]{2}" title="Formato ABC1234 ou ABC1D23">
+        </label>
+
+        <label>RENAVAM (opcional)
+            <input type="text" name="renavam" maxlength="11" inputmode="numeric" pattern="[0-9]{9,11}" placeholder="00000000000"
+                   title="9 a 11 números, como no CRLV">
+            <small>Algumas consultas de multas e débitos pedem placa + RENAVAM. Está no documento do carro (CRLV).</small>
+        </label>
+
+        <label>Documento do veículo (opcional)
+            <input type="file" name="documento" accept=".pdf,.txt">
+            <small>PDF com texto ou TXT: CRLV, nota fiscal, folheto ou ficha do fabricante. Linhas como
+                "Motor: 1.0 TSI" são reconhecidas automaticamente.</small>
+        </label>
+
+        <fieldset>
+            <legend>Já sabe mais alguma coisa? (opcional)</legend>
+            <div class="formulario-grade">
+                <label>Marca <input type="text" name="marca"></label>
+                <label>Modelo <input type="text" name="modelo"></label>
+                <label>Ano do modelo <input type="text" name="anoModelo" maxlength="4" inputmode="numeric"></label>
+            </div>
+        </fieldset>
+
+        <div class="aviso">
+            Os dados encontrados no documento ou em fontes externas entram como <strong>a confirmar</strong>.
+            Nada é apresentado como verificado até você revisar. Placas de demonstração ainda sem ficha, com dados fictícios:
+            <code>VRT1A23</code> (Virtus) e <code>CMD2B34</code> (Commander).
+        </div>
+        <button type="submit" class="botao">Criar ficha</button>
+    </form>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

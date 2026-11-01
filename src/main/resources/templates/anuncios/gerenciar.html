@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head(${anuncio.titulo})}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('anuncios')}"></header>
+<main class="container" th:with="r=${rentabilidade}">
+    <a th:href="@{/anuncios}" class="voltar">← Estoque</a>
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+
+    <div class="titulo-pagina">
+        <div>
+            <h1 th:text="${anuncio.titulo}">Carro</h1>
+            <p class="suave">
+                <span class="placa" th:text="${anuncio.veiculo.placaFormatada}"></span> ·
+                <span th:text="${anuncio.anos}"></span> ·
+                <span class="etiqueta" th:classappend="${anuncio.status.name() == 'DISPONIVEL'} ? 'etiqueta-ok' : (${anuncio.status.name() == 'RESERVADO'} ? 'etiqueta-alerta' : '')"
+                      th:text="${anuncio.status.descricao}"></span>
+            </p>
+        </div>
+        <div class="acoes">
+            <a class="botao" th:href="@{/divulgacao/{id}(id=${anuncio.id})}">Divulgar</a>
+            <a th:if="${anuncio.estaNaLoja()}" class="botao botao-secundario" th:href="@{/loja/carros/{id}(id=${anuncio.id})}" target="_blank">Ver na loja ↗</a>
+            <a class="botao botao-secundario" th:href="@{/fichas/{id}(id=${anuncio.ficha.id})}">Ficha técnica</a>
+        </div>
+    </div>
+
+    <div th:if="${!anuncio.estaVendido() and anuncio.status.visivelNaLoja and !anuncio.estaNaLoja()}" class="aviso">
+        A ficha técnica deste carro voltou para revisão, então ele saiu da loja. <a th:href="@{/fichas/{id}(id=${anuncio.ficha.id})}">Conclua a ficha</a> para publicá-lo de novo.
+    </div>
+
+    <div class="indicadores">
+        <div class="indicador"><strong th:text="${@fmt.moeda(r.valorCompra)}"></strong><span>valor de compra</span></div>
+        <div class="indicador"><strong th:text="${@fmt.moeda(r.totalDespesas)}"></strong><span th:text="|despesas (${despesas.size()})|"></span></div>
+        <div class="indicador"><strong th:text="${@fmt.moeda(r.custoTotal)}"></strong><span>custo total</span></div>
+        <div class="indicador"><strong th:text="${@fmt.moeda(r.valorReferencia)}"></strong><span th:text="${r.realizada} ? 'valor da venda' : 'preço anunciado'"></span></div>
+        <div class="indicador" th:classappend="${r.prejuizo()} ? 'atencao'">
+            <strong th:text="${@fmt.moeda(r.lucro)}"></strong>
+            <span th:text="|${r.realizada ? 'lucro' : 'lucro previsto'} · margem ${@fmt.percentual(r.margemPercentual)}|"></span></div>
+    </div>
+
+    <div class="grade-lateral">
+        <div>
+            <section class="cartao" th:if="${anuncio.estaVendido()}">
+                <h2>Venda</h2>
+                <dl class="lista-valores">
+                    <dt>Comprador</dt><dd th:text="${anuncio.venda.compradorNome}"></dd>
+                    <dt>CPF/CNPJ</dt><dd th:text="${#strings.isEmpty(anuncio.venda.documentoFormatado)} ? '—' : ${anuncio.venda.documentoFormatado}"></dd>
+                    <dt>Data</dt><dd th:text="${#temporals.format(anuncio.venda.data, 'dd/MM/yyyy')}"></dd>
+                    <dt>Forma de pagamento</dt><dd th:text="${anuncio.venda.formaPagamento.descricao}"></dd>
+                    <dt>Valor</dt><dd th:text="${@fmt.moeda(anuncio.venda.valor)}"></dd>
+                </dl>
+                <form th:action="@{/anuncios/{id}/venda/desfazer(id=${anuncio.id})}" method="post" data-confirmar="Desfazer a venda? O carro volta para o estoque, fora da loja.">
+                    <button type="submit" class="botao botao-perigo">Desfazer venda</button>
+                </form>
+            </section>
+
+            <section class="cartao" th:unless="${anuncio.estaVendido()}">
+                <h2>Dados do anúncio</h2>
+                <form th:action="@{/anuncios/{id}(id=${anuncio.id})}" th:object="${form}" method="post" class="formulario">
+                    <label>Título <input type="text" th:field="*{titulo}" maxlength="120"></label>
+                    <div class="formulario-grade">
+                        <label>Preço de venda (R$) <input type="text" inputmode="decimal" th:field="*{preco}" required></label>
+                        <label>Quilometragem <input type="text" inputmode="numeric" th:field="*{quilometragem}" required></label>
+                        <label>Valor pago (R$) <input type="text" inputmode="decimal" th:field="*{valorCompra}"></label>
+                        <label>Data da compra <input type="date" th:field="*{dataCompra}"></label>
+                    </div>
+                    <label>Descrição <textarea th:field="*{descricao}" rows="4" maxlength="4000"></textarea></label>
+                    <label class="checkbox"><input type="checkbox" th:field="*{destaque}"> Destaque na loja</label>
+                    <div class="acoes"><button type="submit" class="botao">Salvar</button></div>
+                </form>
+            </section>
+
+            <section class="cartao" id="fotos">
+                <h2 th:text="|Fotos (${anuncio.fotos.size()} de 8)|">Fotos</h2>
+                <p th:if="${anuncio.fotos.isEmpty()}" class="suave">Sem fotos: a loja mostra uma ilustração no lugar.</p>
+                <div class="grade-fotos">
+                    <figure th:each="f, it : ${anuncio.fotos}">
+                        <img th:src="@{/fotos/{n}(n=${f})}" th:alt="|Foto ${it.count}|">
+                        <figcaption class="acoes">
+                            <span th:if="${it.first}" class="etiqueta etiqueta-ok">Capa</span>
+                            <form th:unless="${it.first}" th:action="@{/anuncios/{id}/fotos/{i}/capa(id=${anuncio.id},i=${it.index})}" method="post">
+                                <button type="submit" class="link-botao">Usar como capa</button></form>
+                            <form th:action="@{/anuncios/{id}/fotos/{i}/remover(id=${anuncio.id},i=${it.index})}" method="post" data-confirmar="Remover esta foto?">
+                                <button type="submit" class="link-botao perigo">Remover</button></form>
+                        </figcaption>
+                    </figure>
+                </div>
+                <form th:if="${anuncio.fotos.size() < 8}" th:action="@{/anuncios/{id}/fotos(id=${anuncio.id})}" method="post"
+                      enctype="multipart/form-data" class="upload">
+                    <label class="area-upload">
+                        <input type="file" name="fotos" accept="image/jpeg,image/png,image/webp" multiple required>
+                        JPG, PNG ou WEBP, até 5 MB cada
+                    </label>
+                    <button type="submit" class="botao botao-secundario">Enviar fotos</button>
+                </form>
+            </section>
+
+            <section class="cartao" id="custos">
+                <div class="cartao-titulo">
+                    <h2>Despesas do carro</h2>
+                    <a th:href="@{/painel/exportar/despesas}">Exportar todas (XLSX)</a>
+                </div>
+                <form th:action="@{/anuncios/{id}/despesas(id=${anuncio.id})}" method="post" class="formulario-grade">
+                    <label>Data <input type="date" name="data" required th:value="${hoje}" th:max="${hoje}"></label>
+                    <label>Categoria
+                        <select name="categoria" required>
+                            <option th:each="c : ${categorias}" th:value="${c.name()}" th:text="${c.descricao}"></option>
+                        </select>
+                    </label>
+                    <label>Descrição <input type="text" name="descricao" maxlength="255"></label>
+                    <label>Valor (R$) <input type="text" name="valor" inputmode="decimal" required placeholder="350,00"></label>
+                    <button type="submit" class="botao botao-secundario">Lançar</button>
+                </form>
+                <div class="tabela-rolagem espaco-topo" th:unless="${despesas.isEmpty()}">
+                    <table class="tabela">
+                        <thead><tr><th>Data</th><th>Categoria</th><th>Descrição</th><th>Origem</th><th>Valor</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${despesas}">
+                            <td class="nowrap" th:text="${#temporals.format(d.data, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${d.categoria.descricao}"></td>
+                            <td th:text="${d.descricao}"></td>
+                            <td class="suave" th:text="${d.origem}"></td>
+                            <td class="nowrap" th:text="${@fmt.moeda(d.valor)}"></td>
+                            <td>
+                                <form th:action="@{/anuncios/{id}/despesas/{d}/remover(id=${anuncio.id},d=${d.id})}" method="post" data-confirmar="Remover esta despesa?">
+                                    <button type="submit" class="link-botao perigo">Remover</button></form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <aside>
+            <section class="cartao" th:unless="${anuncio.estaVendido()}">
+                <h2>Situação na loja</h2>
+                <form th:action="@{/anuncios/{id}/status(id=${anuncio.id})}" method="post" class="formulario">
+                    <label class="checkbox" th:each="s : ${situacoes}">
+                        <input type="radio" name="status" th:value="${s.name()}" th:checked="${s == anuncio.status}">
+                        <span th:text="${s.descricao}"></span>
+                    </label>
+                    <button type="submit" class="botao botao-secundario">Alterar situação</button>
+                </form>
+            </section>
+
+            <section class="cartao" th:unless="${anuncio.estaVendido()}" id="vender">
+                <h2>Registrar venda</h2>
+                <form th:action="@{/anuncios/{id}/venda(id=${anuncio.id})}" method="post" class="formulario">
+                    <label th:unless="${propostas.isEmpty()}">Interessado que comprou
+                        <select name="propostaId" id="proposta-venda">
+                            <option value="">Nenhum / outro comprador</option>
+                            <option th:each="p : ${propostas}" th:if="${p.status.aberta}" th:value="${p.id}" th:data-nome="${p.nome}"
+                                    th:text="|${p.nome} (${p.tipo.descricao})|"></option>
+                        </select>
+                    </label>
+                    <label>Comprador <input type="text" name="comprador" id="comprador-venda" required maxlength="150"></label>
+                    <label>CPF ou CNPJ <input type="text" name="documento" inputmode="numeric" maxlength="18"></label>
+                    <label>Valor da venda (R$) <input type="text" name="valor" inputmode="decimal" required th:value="${@fmt.campo(anuncio.preco)}"></label>
+                    <label>Data <input type="date" name="data" required th:value="${hoje}" th:max="${hoje}"></label>
+                    <label>Forma de pagamento
+                        <select name="formaPagamento" required>
+                            <option th:each="f : ${formas}" th:value="${f.name()}" th:text="${f.descricao}"></option>
+                        </select>
+                    </label>
+                    <button type="submit" class="botao">Registrar venda</button>
+                </form>
+            </section>
+
+            <section class="cartao" id="interessados">
+                <h2 th:text="|Interessados (${propostas.size()})|">Interessados</h2>
+                <p th:if="${propostas.isEmpty()}" class="suave">Nenhum contato pela loja ainda.</p>
+                <ul class="lista-contatos">
+                    <th:block th:each="p : ${propostas}"><li th:replace="~{fragmentos/contato :: contato(${p}, |/anuncios/${anuncio.id}|)}"></li></th:block>
+                </ul>
+            </section>
+
+            <section class="cartao" th:unless="${anuncio.estaVendido()}">
+                <h2>Excluir anúncio</h2>
+                <p class="suave">Remove o anúncio, as fotos e as despesas. A ficha técnica continua salva.</p>
+                <form th:action="@{/anuncios/{id}/excluir(id=${anuncio.id})}" method="post" data-confirmar="Excluir este anúncio, com fotos e despesas?">
+                    <button type="submit" class="botao botao-perigo">Excluir anúncio</button>
+                </form>
+            </section>
+        </aside>
+    </div>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

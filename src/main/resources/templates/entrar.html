@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Entrar')}"></head>
+<body>
+<main class="container estreito entrar">
+    <section class="cartao">
+        <a th:href="@{/}" class="marca"><span class="marca-icone">◆</span> DataFlow Auto</a>
+        <h1>Área da loja</h1>
+        <p class="suave">Entre para gerenciar o estoque, os interessados, as planilhas e as fichas técnicas.</p>
+        <div th:if="${param.error}" class="alerta alerta-erro" role="alert">Usuário ou senha incorretos.</div>
+        <div th:if="${param.bloqueado}" class="alerta alerta-erro" role="alert">Muitas tentativas erradas seguidas.
+            Por segurança, o login fica bloqueado por alguns minutos. Tente de novo mais tarde.</div>
+        <div th:if="${param.logout}" class="alerta alerta-sucesso" role="status">Você saiu do painel.</div>
+        <form th:action="@{/entrar}" method="post" class="formulario">
+            <label>Usuário <input type="text" name="username" required autofocus autocomplete="username"></label>
+            <label>Senha <input type="password" name="password" required autocomplete="current-password"></label>
+            <button type="submit" class="botao">Entrar</button>
+        </form>
+        <p><a th:href="@{/}">← Voltar para a loja</a></p>
+    </section>
+</main>
+</body>
+</html>

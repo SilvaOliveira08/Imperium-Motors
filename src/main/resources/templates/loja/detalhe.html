@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/loja :: head(${anuncio.titulo}, |${anuncio.titulo} ${anuncio.anos}, ${@fmt.km(anuncio.quilometragem)}, por ${@fmt.preco(anuncio.preco)}.|)}"></head>
+<body class="loja pagina-carro">
+<header th:replace="~{fragmentos/loja :: cabecalho}"></header>
+
+<section class="detalhe-cabeca">
+    <div class="container">
+        <ol class="trilha" aria-label="Você está em">
+            <li><a th:href="@{/}">Início</a></li>
+            <li><a th:href="@{/} + '#estoque'">Carros</a></li>
+            <li th:if="${!#strings.isEmpty(anuncio.marca)}"><a th:href="@{/(marca=${anuncio.marca})} + '#estoque'" th:text="${anuncio.marca}"></a></li>
+            <li aria-current="page" th:text="${anuncio.titulo}"></li>
+        </ol>
+        <div class="detalhe-titulo-linha">
+            <div>
+                <h1 th:text="${anuncio.titulo}">Carro</h1>
+                <p class="detalhe-versao" th:text="|${anuncio.anos} · ${@fmt.km(anuncio.quilometragem)}|"></p>
+            </div>
+            <div class="detalhe-etiquetas">
+                <span class="etiqueta-loja verde">✓ Ficha técnica conferida</span>
+                <span th:if="${anuncio.destaque}" class="etiqueta-loja vermelha">Destaque</span>
+                <span th:if="${anuncio.status.name() == 'RESERVADO'}" class="etiqueta-loja">Reservado</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<main class="container">
+    <div class="espaco-topo" th:if="${sucesso != null or erro != null}"><div th:replace="~{fragmentos/loja :: mensagens}"></div></div>
+
+    <div class="detalhe-grade">
+        <div class="detalhe-principal">
+            <section class="galeria" aria-label="Fotos">
+                <div class="galeria-principal">
+                    <th:block th:replace="~{fragmentos/loja :: foto(${anuncio}, 'galeria-foto')}"></th:block>
+                    <span th:if="${anuncio.status.name() == 'RESERVADO'}" class="selo-carro selo-reservado">Reservado</span>
+                    <span th:if="${anuncio.fotos.size() > 1}" class="galeria-contador" th:text="|${anuncio.fotos.size()} fotos|"></span>
+                </div>
+                <div class="galeria-miniaturas" th:if="${anuncio.fotos.size() > 1}">
+                    <a th:each="f, it : ${anuncio.fotos}" th:href="@{/fotos/{n}(n=${f})}" class="miniatura"
+                       th:classappend="${it.first} ? 'ativa'" target="_blank">
+                        <img th:src="@{/fotos/{n}(n=${f})}" th:alt="|Foto ${it.count} de ${anuncio.titulo}|" loading="lazy">
+                    </a>
+                </div>
+            </section>
+
+            <nav class="ancoras" aria-label="Seções do anúncio">
+                <div class="ancoras-lista">
+                    <a href="#visao-geral">Visão geral</a>
+                    <a href="#ficha">Ficha técnica</a>
+                    <a href="#simulacao">Financiamento</a>
+                    <a href="#contato">Contato</a>
+                </div>
+            </nav>
+
+            <section class="bloco" id="visao-geral">
+                <h2>Visão geral</h2>
+                <ul class="icones-carro">
+                    <li>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg>
+                        <div><span>Ano</span><strong th:text="${anuncio.anos}"></strong></div>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.5"/></svg>
+                        <div><span>Quilometragem</span><strong th:text="${@fmt.km(anuncio.quilometragem)}"></strong></div>
+                    </li>
+                    <li th:if="${!#strings.isEmpty(anuncio.cambio)}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6 8v8M12 8v8M18 8v4H6"/></svg>
+                        <div><span>Câmbio</span><strong th:text="${anuncio.cambio}"></strong></div>
+                    </li>
+                    <li th:if="${!#strings.isEmpty(anuncio.combustivel)}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M5 10h10"/><path d="M15 8l3 3v6a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>
+                        <div><span>Combustível</span><strong th:text="${anuncio.combustivel}"></strong></div>
+                    </li>
+                    <li th:if="${!#strings.isEmpty(anuncio.cor)}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>
+                        <div><span>Cor</span><strong th:text="${anuncio.cor}"></strong></div>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 12h2M11 12h2M16 12h2"/></svg>
+                        <div><span>Final da placa</span><strong th:text="${#strings.substring(anuncio.veiculo.placa.valor(), 6)}"></strong></div>
+                    </li>
+                </ul>
+                <div th:if="${anuncio.descricao}" class="descricao-carro">
+                    <h3>Sobre este carro</h3>
+                    <p th:text="${anuncio.descricao}"></p>
+                </div>
+            </section>
+
+            <section class="bloco" id="ficha">
+                <div class="bloco-topo">
+                    <h2>Ficha técnica</h2>
+                    <a th:href="@{/loja/carros/{id}/ficha-tecnica.pdf(id=${anuncio.id})}" target="_blank">Baixar PDF ↓</a>
+                </div>
+                <p class="selo-verificado">✓ Dados conferidos pela equipe da loja antes da publicação</p>
+                <div class="especificacoes">
+                    <section th:each="grupo : ${especificacoes}">
+                        <h3 th:text="${grupo.key.descricao}"></h3>
+                        <dl>
+                            <th:block th:each="c : ${grupo.value}" th:with="seteLugares=${anuncio.portaMalasSeteLugares}">
+                                <th:block th:unless="${c.campo.name() == 'PORTA_MALAS_7_LUGARES' and !#strings.isEmpty(seteLugares)}">
+                                    <dt th:text="${c.campo.rotulo}"></dt>
+                                    <!-- Carros de 7 lugares: os dois tamanhos do porta-malas na mesma linha -->
+                                    <dd th:if="${c.campo.name() == 'PORTA_MALAS' and !#strings.isEmpty(seteLugares)}" class="porta-malas-duplo">
+                                        <span th:text="${#strings.containsIgnoreCase(c.valor, 'lugar')} ? ${c.valor} : |${c.valor} com 5 lugares|"></span>
+                                        <span th:text="|${seteLugares} com 7 lugares|"></span>
+                                    </dd>
+                                    <dd th:unless="${c.campo.name() == 'PORTA_MALAS' and !#strings.isEmpty(seteLugares)}" th:text="${c.valor}"></dd>
+                                </th:block>
+                            </th:block>
+                        </dl>
+                    </section>
+                </div>
+            </section>
+
+            <section class="bloco" id="simulacao">
+                <h2>Simule o financiamento</h2>
+                <div class="simulador">
+                    <form th:action="@{/loja/carros/{id}(id=${anuncio.id})} + '#simulacao'" method="get" class="formulario">
+                        <label>Valor de entrada (R$)
+                            <input type="text" inputmode="numeric" name="entrada" th:value="${simEntrada}">
+                        </label>
+                        <label>Número de parcelas
+                            <select name="parcelas">
+                                <option th:each="p : ${opcoesParcelas}" th:value="${p}" th:text="|${p}x|" th:selected="${p == simParcelas}"></option>
+                            </select>
+                        </label>
+                        <button type="submit" class="botao botao-destaque">Calcular parcelas</button>
+                        <p th:if="${erroSimulacao}" class="alerta alerta-erro" th:text="${erroSimulacao}"></p>
+                    </form>
+                    <div th:if="${simulacao}" class="resultado-simulacao">
+                        <p><span th:text="|${simulacao.parcelas}x de|"></span> <strong th:text="${@fmt.moeda(simulacao.valorParcela)}"></strong></p>
+                        <dl class="lista-valores">
+                            <dt>Valor financiado</dt><dd th:text="${@fmt.moeda(simulacao.valorFinanciado)}"></dd>
+                            <dt>Total pago</dt><dd th:text="${@fmt.moeda(simulacao.totalPago)}"></dd>
+                            <dt>Taxa usada</dt><dd th:text="${@loja.taxaFormatada}"></dd>
+                        </dl>
+                        <small>Simulação pela Tabela Price, sem IOF e tarifas. A taxa final depende da análise de crédito.</small>
+                    </div>
+                    <div th:unless="${simulacao}" class="simulacao-vazia">
+                        Informe a entrada e o número de parcelas para ver o valor estimado.
+                    </div>
+                </div>
+            </section>
+
+            <section class="bloco" id="contato">
+                <h2>Fale com a loja</h2>
+                <form th:action="@{/loja/carros/{id}/contato(id=${anuncio.id})}" method="post" class="formulario" id="form-contato">
+                    <fieldset class="tipos-contato">
+                        <legend>O que você quer?</legend>
+                        <label th:each="t, it : ${tipos}">
+                            <input type="radio" name="tipo" th:value="${t.name()}"
+                                   th:checked="${contato != null} ? ${contato.tipo == t.name()} : ${it.first}">
+                            <span th:text="${t.descricao}"></span>
+                        </label>
+                    </fieldset>
+                    <div class="contato-grade">
+                        <label class="largo">Nome <input type="text" name="nome" required maxlength="150" autocomplete="name" th:value="${contato?.nome}"></label>
+                        <label>Telefone / WhatsApp <input type="tel" name="telefone" placeholder="(19) 99999-0000" autocomplete="tel" th:value="${contato?.telefone}"></label>
+                        <label>E-mail <input type="email" name="email" autocomplete="email" th:value="${contato?.email}"></label>
+                        <label data-tipo="PROPOSTA" class="largo">Valor da proposta (R$)
+                            <input type="text" inputmode="numeric" name="valorOferecido" th:value="${contato?.valorOferecido}">
+                        </label>
+                        <label data-tipo="TEST_DRIVE" class="largo">Data preferida para o test drive
+                            <input type="date" name="dataPreferida" th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" th:value="${contato?.dataPreferida}">
+                        </label>
+                        <label class="largo">Mensagem <textarea name="mensagem" rows="3" maxlength="2000" th:text="${contato?.mensagem}"></textarea></label>
+                    </div>
+                    <small class="suave">Informe telefone ou e-mail. Usamos seus dados só para responder sobre este carro.</small>
+                    <div><button type="submit" class="botao botao-destaque">Enviar para a loja</button></div>
+                </form>
+            </section>
+        </div>
+
+        <aside class="detalhe-lateral">
+            <section class="caixa-preco">
+                <span class="rotulo">Preço à vista</span>
+                <strong class="preco-grande" th:text="${@fmt.preco(anuncio.preco)}"></strong>
+                <th:block th:with="p=${@loja.parcelaDesde(anuncio.preco)}">
+                    <div class="parcela-destaque" th:if="${p != null}">
+                        ou <strong th:text="|48x de ${@fmt.moeda(p)}|"></strong> com 30% de entrada
+                    </div>
+                </th:block>
+                <a href="#contato" class="botao botao-destaque botao-bloco">Tenho interesse</a>
+                <th:block th:with="link=${@loja.whatsapp('Olá! Tenho interesse no ' + anuncio.titulo + ' ' + anuncio.anos + ' anunciado no site.')}">
+                    <a th:if="${!#strings.isEmpty(link)}" th:href="${link}" class="botao botao-whats botao-bloco" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>
+                        Conversar no WhatsApp
+                    </a>
+                </th:block>
+                <a href="#simulacao" class="botao botao-secundario botao-bloco">Simular financiamento</a>
+                <ul class="garantias">
+                    <li>Histórico consultado: leilão, sinistro, roubo e restrições</li>
+                    <li>Ficha técnica revisada pela equipe</li>
+                    <li>Test drive com hora marcada</li>
+                    <li>Aceitamos seu usado na troca</li>
+                </ul>
+            </section>
+        </aside>
+    </div>
+
+    <section th:unless="${semelhantes.isEmpty()}" class="semelhantes">
+        <div class="secao-topo">
+            <div>
+                <h2>Carros parecidos</h2>
+            </div>
+            <a th:href="@{/} + '#estoque'" class="link-seta">Ver o estoque completo</a>
+        </div>
+        <div class="grade-carros">
+            <th:block th:each="a : ${semelhantes}"><article th:replace="~{fragmentos/loja :: cartao(${a})}"></article></th:block>
+        </div>
+    </section>
+</main>
+
+<div class="barra-preco-movel">
+    <div>
+        <strong th:text="${@fmt.preco(anuncio.preco)}"></strong>
+        <th:block th:with="p=${@loja.parcelaDesde(anuncio.preco)}"><small th:if="${p != null}" th:text="|ou 48x de ${@fmt.moeda(p)}|"></small></th:block>
+    </div>
+    <a href="#contato" class="botao botao-destaque">Tenho interesse</a>
+</div>
+<footer th:replace="~{fragmentos/loja :: rodape}"></footer>
+</body>
+</html>

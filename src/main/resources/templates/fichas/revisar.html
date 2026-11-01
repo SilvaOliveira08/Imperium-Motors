@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Ficha ' + ${ficha.veiculo.placaFormatada})}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('fichas')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <a th:href="@{/fichas}" class="voltar">← Fichas técnicas</a>
+    <div class="titulo-pagina">
+        <div>
+            <h1><span class="placa" th:text="${ficha.veiculo.placaFormatada}"></span>
+                <span class="etiqueta" th:classappend="${ficha.status.name() == 'CONCLUIDA'} ? 'etiqueta-ok' : 'etiqueta-alerta'"
+                      th:text="${ficha.status.descricao}"></span></h1>
+            <p class="suave" th:text="|Fontes consultadas: ${ficha.fontesConsultadas}|"></p>
+        </div>
+        <div class="acoes">
+            <form th:action="@{/fichas/{id}/consultar(id=${ficha.id})}" method="post">
+                <button class="botao" type="submit" title="Busca de novo pela placa: multas, débitos, restrições e o que estiver faltando">Consultar fontes novamente</button>
+            </form>
+            <a class="botao botao-secundario" th:href="@{/fichas/{id}/pdf(id=${ficha.id})}" target="_blank"
+               th:text="${ficha.status.name() == 'CONCLUIDA'} ? 'Gerar PDF' : 'PDF (rascunho)'">PDF</a>
+            <form th:action="@{/fichas/{id}/excluir(id=${ficha.id})}" method="post"
+                  data-confirmar="Excluir esta ficha?">
+                <button class="botao botao-perigo" type="submit">Excluir</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${ficha.consultaIncompleta()}" class="aviso" role="alert">
+        A última consulta não foi completa: alguma fonte não respondeu. Antes de informar o comprador sobre multas,
+        débitos ou restrições, use "Consultar fontes novamente".
+    </div>
+
+    <div class="indicadores">
+        <div class="indicador"><strong th:text="${confirmados}"></strong><span>confirmados</span></div>
+        <div class="indicador" th:classappend="${aConfirmar > 0} ? 'atencao'"><strong th:text="${aConfirmar}"></strong><span>a confirmar</span></div>
+        <div class="indicador"><strong th:text="${ausentes}"></strong><span>ausentes</span></div>
+        <div class="indicador" th:classappend="${pendentes.size() > 0} ? 'atencao'"><strong th:text="${pendentes.size()}"></strong><span>pendências para concluir</span></div>
+    </div>
+
+    <form th:action="@{/fichas/{id}(id=${ficha.id})}" method="post">
+        <section class="cartao" th:each="grupo : ${grupos}">
+            <div class="cartao-titulo">
+                <h2 th:text="${grupo.key.descricao}"></h2>
+            </div>
+            <div class="campos-ficha">
+                <div class="campo" th:each="c : ${grupo.value}" th:unless="${c.campo.name() == 'PORTA_MALAS_7_LUGARES'}"
+                     th:classappend="|status-${#strings.toLowerCase(c.status.name())}|">
+                    <label th:for="|valor-${c.campo}|">
+                        <span th:text="${c.campo.rotulo}"></span><span th:if="${c.campo.obrigatorio}" class="obrigatorio" title="Obrigatório">*</span>
+                    </label>
+                    <th:block th:with="longo=${c.campo.name() == 'EQUIPAMENTOS'}">
+                        <textarea th:if="${longo}" th:id="|valor-${c.campo}|" th:name="|valores[${c.campo}]|" rows="3" th:text="${c.valor}"></textarea>
+                        <input th:unless="${longo}" type="text" th:id="|valor-${c.campo}|" th:name="|valores[${c.campo}]|" th:value="${c.valor}">
+                    </th:block>
+                    <div class="campo-rodape">
+                        <span class="selo" th:classappend="|selo-${#strings.toLowerCase(c.status.name())}|" th:text="${c.status.descricao}"></span>
+                        <span class="origem" th:if="${c.origem != null}"
+                              th:text="${c.fonteDetalhe != null} ? ${c.fonteDetalhe} : ${c.origem.descricao}"
+                              th:title="${c.origem.descricao}"></span>
+                        <label class="checkbox confirmar" th:if="${c.status.name() == 'A_CONFIRMAR'}">
+                            <input type="checkbox" name="confirmados" th:value="${c.campo}"> confirmar
+                        </label>
+                    </div>
+                    <!-- Carros de 7 lugares ou mais: o porta-malas com todos os bancos fica no mesmo quadro -->
+                    <div th:if="${c.campo.name() == 'PORTA_MALAS'}" class="subcampo" data-porta-malas-7
+                         th:with="p7=${ficha.campo(T(br.com.dataflowauto.fichas.dominio.CampoTecnico).PORTA_MALAS_7_LUGARES)}"
+                         th:classappend="|status-${#strings.toLowerCase(p7.status.name())}|"
+                         th:hidden="${!ficha.temSeteLugaresOuMais() and !p7.possuiValor()}">
+                        <label for="valor-PORTA_MALAS_7_LUGARES">Com 7 lugares</label>
+                        <input type="text" id="valor-PORTA_MALAS_7_LUGARES" name="valores[PORTA_MALAS_7_LUGARES]" th:value="${p7.valor}"
+                               placeholder="Ex.: 162 L">
+                        <div class="campo-rodape">
+                            <span class="selo" th:classappend="|selo-${#strings.toLowerCase(p7.status.name())}|" th:text="${p7.status.descricao}"></span>
+                            <span class="origem" th:if="${p7.origem != null}"
+                                  th:text="${p7.fonteDetalhe != null} ? ${p7.fonteDetalhe} : ${p7.origem.descricao}"
+                                  th:title="${p7.origem.descricao}"></span>
+                            <label class="checkbox confirmar" th:if="${p7.status.name() == 'A_CONFIRMAR'}">
+                                <input type="checkbox" name="confirmados" value="PORTA_MALAS_7_LUGARES"> confirmar
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="barra-acoes">
+            <button type="button" class="botao botao-secundario" id="confirmar-todos">Marcar todos os "a confirmar"</button>
+            <button type="submit" name="acao" value="salvar" class="botao botao-secundario">Salvar revisão</button>
+            <button type="submit" name="acao" value="concluir" class="botao">Salvar e concluir</button>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

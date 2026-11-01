@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Divulgar ' + ${kit.anuncio.titulo})}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('divulgacao')}"></header>
+<main class="container" th:with="a=${kit.anuncio}">
+    <a th:href="@{/divulgacao}" class="voltar">← Divulgação</a>
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+
+    <div class="titulo-pagina">
+        <div>
+            <h1 th:text="|Divulgar ${a.titulo}|">Divulgar</h1>
+            <p class="suave">
+                <span class="placa" th:text="${a.veiculo.placaFormatada}"></span> ·
+                <span th:text="${a.anos}"></span> ·
+                <span th:text="${@fmt.preco(a.preco)}"></span> ·
+                <span class="etiqueta" th:classappend="${a.estaNaLoja()} ? 'etiqueta-ok' : 'etiqueta-alerta'"
+                      th:text="${a.estaNaLoja()} ? 'Na loja' : ${a.status.descricao}"></span>
+            </p>
+        </div>
+        <div class="acoes">
+            <a class="botao botao-secundario" th:href="@{/anuncios/{id}(id=${a.id})}">Gerenciar carro</a>
+            <a th:if="${a.estaNaLoja()}" class="botao botao-secundario" th:href="@{/loja/carros/{id}(id=${a.id})}" target="_blank">Ver na loja ↗</a>
+        </div>
+    </div>
+
+    <div th:unless="${kit.pendencias().isEmpty()}" class="aviso">
+        <strong>Este carro não está mais à venda</strong>, mas continua publicado em
+        <span th:text="${#strings.listJoin(kit.pendencias().![canal.descricao], ', ')}"></span>.
+        Apague esses anúncios e marque abaixo como retirado.
+    </div>
+    <div th:if="${!a.estaNaLoja() and kit.pendencias().isEmpty()}" class="aviso">
+        Este carro não está à venda na loja agora. Os textos continuam aqui para consulta, mas não divulgue.
+    </div>
+
+    <section class="cartao">
+        <div class="cartao-titulo">
+            <h2 th:text="|Fotos (${a.fotos.size()})|">Fotos</h2>
+            <a th:unless="${a.fotos.isEmpty()}" class="botao" th:href="@{/divulgacao/{id}/fotos.zip(id=${a.id})}">Baixar todas as fotos (.zip)</a>
+        </div>
+        <p th:if="${a.fotos.isEmpty()}" class="suave">Este carro ainda não tem fotos. <a th:href="@{/anuncios/{id}(id=${a.id})} + '#fotos'">Adicione fotos</a> antes de divulgar.</p>
+        <div class="fotos-kit" th:unless="${a.fotos.isEmpty()}">
+            <a th:each="f, it : ${a.fotos}" th:href="@{/fotos/{n}(n=${f})}" th:download="|${a.titulo}-${it.count}|" class="foto-kit">
+                <img th:src="@{/fotos/{n}(n=${f})}" th:alt="|Foto ${it.count}|" loading="lazy">
+                <span th:if="${it.first}" class="etiqueta etiqueta-ok">Capa</span>
+            </a>
+        </div>
+        <p class="suave nota" th:unless="${a.fotos.isEmpty()}">Clique numa foto para baixar só ela. A primeira é a capa: use-a como primeira imagem do post.</p>
+    </section>
+
+    <section class="cartao">
+        <h2>Interessados deste carro</h2>
+        <div class="indicadores">
+            <div class="indicador" th:each="c : ${canais}" th:if="${kit.contatosPorCanal.get(c) > 0}">
+                <strong th:text="${kit.contatosPorCanal.get(c)}"></strong><span th:text="${c.descricao}"></span>
+            </div>
+            <div class="indicador">
+                <strong th:text="${kit.contatosDiretos}"></strong><span>Direto pelo site</span>
+            </div>
+        </div>
+    </section>
+
+    <h2 class="titulo-secao">Textos prontos por canal</h2>
+    <p class="suave">Copie, cole no canal e depois marque como publicado. Os links já levam a marcação do canal, assim
+        os interessados que chegarem por eles aparecem com a origem certa.</p>
+
+    <section class="cartao canal-kit" th:each="t : ${kit.textos}" th:id="|canal-${t.canal.codigo}|"
+             th:with="pub=${kit.publicacoes.get(t.canal)}">
+        <div class="cartao-titulo">
+            <h2 th:text="${t.canal.descricao}">Canal</h2>
+            <span th:if="${pub != null and pub.ativa}" class="etiqueta etiqueta-ok"
+                  th:text="|Publicado desde ${#temporals.format(pub.publicadaEm, 'dd/MM/yyyy')}|"></span>
+            <span th:if="${pub != null and !pub.ativa}" class="etiqueta"
+                  th:text="|Retirado em ${#temporals.format(pub.removidaEm, 'dd/MM/yyyy')}|"></span>
+            <span th:if="${pub == null}" class="etiqueta">Não publicado</span>
+        </div>
+        <p class="suave" th:text="${t.dica}"></p>
+
+        <div class="grade-kit">
+            <div>
+                <th:block th:if="${t.temTitulo()}">
+                    <div class="copiavel-topo">
+                        <label th:for="|titulo-${t.canal.codigo}|">Título</label>
+                        <button type="button" class="botao botao-secundario botao-pequeno" th:attr="data-copiar=|titulo-${t.canal.codigo}|">Copiar título</button>
+                    </div>
+                    <input type="text" readonly th:id="|titulo-${t.canal.codigo}|" th:value="${t.titulo}" class="copiavel">
+                </th:block>
+                <div class="copiavel-topo">
+                    <label th:for="|texto-${t.canal.codigo}|" th:text="${t.temTitulo()} ? 'Descrição' : 'Texto'">Texto</label>
+                    <span class="suave contador" th:text="|${#strings.length(t.texto)} caracteres|"></span>
+                    <button type="button" class="botao botao-pequeno" th:attr="data-copiar=|texto-${t.canal.codigo}|">Copiar texto</button>
+                </div>
+                <textarea readonly th:id="|texto-${t.canal.codigo}|" class="copiavel" rows="12" th:text="${t.texto}"></textarea>
+            </div>
+
+            <aside class="lateral-kit">
+                <th:block th:if="${t.canal.classificado}">
+                    <h3>Dados para os campos</h3>
+                    <dl class="lista-valores">
+                        <dt>Marca</dt><dd th:text="${a.marca}"></dd>
+                        <dt>Modelo</dt><dd th:text="${a.modelo}"></dd>
+                        <dt>Versão</dt><dd th:text="${a.dado(T(br.com.dataflowauto.fichas.dominio.CampoTecnico).VERSAO)}"></dd>
+                        <dt>Ano</dt><dd th:text="${a.anos}"></dd>
+                        <dt>Quilometragem</dt><dd th:text="${@fmt.km(a.quilometragem)}"></dd>
+                        <dt>Câmbio</dt><dd th:text="${a.tipoCambio}"></dd>
+                        <dt>Combustível</dt><dd th:text="${a.combustivel}"></dd>
+                        <dt>Cor</dt><dd th:text="${a.cor}"></dd>
+                        <dt>Portas</dt><dd th:text="${a.dado(T(br.com.dataflowauto.fichas.dominio.CampoTecnico).PORTAS)}"></dd>
+                        <dt>Final da placa</dt><dd th:text="${#strings.substring(a.veiculo.placa.valor(), 6)}"></dd>
+                        <dt>Preço</dt><dd th:text="${@fmt.preco(a.preco)}"></dd>
+                    </dl>
+                </th:block>
+                <th:block th:unless="${t.canal.classificado}">
+                    <h3>Link deste canal</h3>
+                    <div class="copiavel-topo">
+                        <input type="text" readonly th:id="|link-${t.canal.codigo}|" th:value="${t.link}" class="copiavel">
+                        <button type="button" class="botao botao-secundario botao-pequeno" th:attr="data-copiar=|link-${t.canal.codigo}|">Copiar</button>
+                    </div>
+                </th:block>
+
+                <h3>Situação</h3>
+                <p th:if="${pub != null and pub.ativa and pub.link != null}">
+                    <a th:href="${pub.link}" target="_blank" rel="noopener">Abrir o anúncio ↗</a></p>
+                <form th:if="${pub == null or !pub.ativa}" th:action="@{/divulgacao/{id}/canais/{c}(id=${a.id},c=${t.canal.codigo})}" method="post" class="formulario">
+                    <label>Link do anúncio (opcional)
+                        <input type="url" name="link" maxlength="500" placeholder="https://..."></label>
+                    <button type="submit" class="botao" th:text="|Marcar como publicado|">Marcar como publicado</button>
+                </form>
+                <form th:if="${pub != null and pub.ativa}" th:action="@{/divulgacao/{id}/canais/{c}/tirar(id=${a.id},c=${t.canal.codigo})}" method="post">
+                    <button type="submit" class="botao botao-secundario" th:text="|Já tirei do ${t.canal.descricao}|"></button>
+                </form>
+            </aside>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

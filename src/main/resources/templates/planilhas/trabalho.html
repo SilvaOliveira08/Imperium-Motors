@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Organizar planilha')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('planilhas')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <a th:href="@{/planilhas}" class="voltar">← Planilhas</a>
+    <div class="titulo-pagina">
+        <div>
+            <h1 th:text="${planilha.nome}"></h1>
+            <p class="suave" th:text="|${planilha.totalLinhas()} linhas · ${planilha.totalColunas()} colunas|"></p>
+        </div>
+        <div class="acoes">
+            <form th:if="${podeDesfazer}" th:action="@{/planilhas/trabalho/desfazer}" method="post">
+                <input type="hidden" name="area" th:value="${area}">
+                <button class="botao botao-secundario" type="submit">↶ Desfazer</button>
+            </form>
+            <a class="botao" th:href="@{/planilhas/trabalho/exportar(formato='xlsx',area=${area})}">Exportar XLSX</a>
+            <a class="botao botao-secundario" th:href="@{/planilhas/trabalho/exportar(formato='csv',area=${area})}">Exportar CSV</a>
+        </div>
+    </div>
+
+    <div class="grade-lateral">
+        <div>
+            <section class="cartao">
+                <h2>1. Organizar colunas</h2>
+                <p class="suave">Marque as colunas que ficam, ajuste a ordem com as setas e, se quiser, dê um novo nome ou aplique uma padronização.</p>
+                <form th:action="@{/planilhas/trabalho/organizar}" th:object="${form}" method="post">
+                    <input type="hidden" name="area" th:value="${area}">
+                    <div class="tabela-rolagem">
+                        <table class="tabela tabela-colunas" id="tabela-colunas">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" id="marcar-todas" checked title="Marcar todas"></th>
+                                <th>Ordem</th>
+                                <th>Coluna</th>
+                                <th>Novo nome</th>
+                                <th>Padronizar</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c, i : *{colunas}" class="linha-coluna">
+                                <td>
+                                    <input type="checkbox" class="incluir" th:field="*{colunas[__${i.index}__].incluir}">
+                                    <input type="hidden" th:field="*{colunas[__${i.index}__].nome}">
+                                </td>
+                                <td class="nowrap">
+                                    <input type="number" class="ordem" min="1" th:field="*{colunas[__${i.index}__].ordem}">
+                                    <button type="button" class="mover" data-direcao="-1" title="Subir">▲</button>
+                                    <button type="button" class="mover" data-direcao="1" title="Descer">▼</button>
+                                </td>
+                                <td th:text="${c.nome}"></td>
+                                <td><input type="text" th:field="*{colunas[__${i.index}__].novoNome}" placeholder="manter"></td>
+                                <td>
+                                    <select th:field="*{colunas[__${i.index}__].padronizacao}">
+                                        <option value="">—</option>
+                                        <option th:each="p : ${padronizacoes}" th:value="${p}" th:text="${p.descricao}"></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <fieldset class="opcoes">
+                        <legend>Limpeza</legend>
+                        <label class="checkbox">
+                            <input type="checkbox" th:field="*{removerDuplicatas}">
+                            Remover linhas duplicadas
+                        </label>
+                        <label>Comparar duplicatas por
+                            <select th:field="*{duplicataPorColuna}">
+                                <option value="">todas as colunas</option>
+                                <option th:each="n : ${planilha.nomesColunas}" th:value="${n}" th:text="${n}"></option>
+                            </select>
+                        </label>
+                        <label>Remover linhas sem valor em
+                            <select th:field="*{removerVaziosDaColuna}">
+                                <option value="">não remover</option>
+                                <option th:each="n : ${planilha.nomesColunas}" th:value="${n}" th:text="${n}"></option>
+                            </select>
+                        </label>
+                    </fieldset>
+                    <button type="submit" class="botao">Aplicar</button>
+                </form>
+            </section>
+
+            <section class="cartao">
+                <h2>2. Combinar com outra planilha</h2>
+                <p class="suave">Une as linhas que têm o mesmo valor na coluna-chave (CPF, placa, código). Pontos, traços e espaços são ignorados na comparação.</p>
+                <form th:action="@{/planilhas/trabalho/combinar}" method="post" class="formulario-grade" id="form-combinar">
+                    <input type="hidden" name="area" th:value="${area}">
+                    <label>Chave nesta planilha
+                        <select name="chaveAtual" required>
+                            <option th:each="n : ${planilha.nomesColunas}" th:value="${n}" th:text="${n}"></option>
+                        </select>
+                    </label>
+                    <label>Outra planilha
+                        <select name="arquivoId" id="outra-planilha" required th:attr="data-url=@{/planilhas/api/}">
+                            <option value="">Escolha…</option>
+                            <option th:each="a : ${arquivos}" th:value="${a.id}" th:text="${a.nomeOriginal}"></option>
+                        </select>
+                    </label>
+                    <label>Chave na outra planilha
+                        <select name="chaveOutra" id="chave-outra" required>
+                            <option value="">Escolha a planilha primeiro</option>
+                        </select>
+                    </label>
+                    <label>Tipo de junção
+                        <select name="tipo">
+                            <option th:each="t : ${tiposJuncao}" th:value="${t}" th:text="${t.descricao}"
+                                    th:selected="${t.name() == 'ESQUERDA'}"></option>
+                        </select>
+                    </label>
+                    <div><button type="submit" class="botao">Combinar</button></div>
+                </form>
+            </section>
+        </div>
+
+        <aside>
+            <div th:replace="~{fragmentos/layout :: qualidade}"></div>
+            <section class="cartao">
+                <h2>Etapas</h2>
+                <ol class="etapas">
+                    <li th:each="e : ${etapas}" th:text="${e}"></li>
+                </ol>
+            </section>
+        </aside>
+    </div>
+
+    <section class="cartao">
+        <h2>Resultado</h2>
+        <th:block th:replace="~{fragmentos/layout :: tabelaPlanilha}"></th:block>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<li th:fragment="contato(p, voltar)" class="contato">
+    <div class="contato-topo">
+        <strong th:text="${p.nome}"></strong>
+        <span class="etiqueta" th:text="${p.tipo.descricao}"></span>
+        <span class="etiqueta etiqueta-canal" th:if="${p.origem != null}" th:text="|via ${p.origem.descricao}|"
+              title="Chegou por um link divulgado neste canal"></span>
+        <span class="etiqueta" th:classappend="${p.status.name() == 'NOVA'} ? 'etiqueta-alerta' : (${p.status.name() == 'CONVERTIDA'} ? 'etiqueta-ok' : '')"
+              th:text="${p.status.descricao}"></span>
+        <time class="suave" th:text="${#temporals.format(p.criadaEm, 'dd/MM/yyyy HH:mm')}"></time>
+    </div>
+    <div th:if="${voltar == '/propostas'}"><a th:href="@{/anuncios/{id}(id=${p.anuncio.id})}" th:text="${p.anuncio.titulo}"></a>
+        <span class="suave" th:text="|· ${@fmt.preco(p.anuncio.preco)}|"></span></div>
+    <div class="contato-dados">
+        <a th:if="${p.telefone}" th:href="|tel:+55${p.telefone}|" th:text="${p.telefoneFormatado}"></a>
+        <a th:if="${p.linkWhatsapp}" th:href="${p.linkWhatsapp}" target="_blank" rel="noopener">WhatsApp</a>
+        <a th:if="${p.email}" th:href="|mailto:${p.email}|" th:text="${p.email}"></a>
+    </div>
+    <p th:if="${p.valorOferecido}">Oferta: <strong th:text="${@fmt.moeda(p.valorOferecido)}"></strong></p>
+    <p th:if="${p.dataPreferida}">Test drive em <strong th:text="${#temporals.format(p.dataPreferida, 'dd/MM/yyyy')}"></strong></p>
+    <p th:if="${p.mensagem}" class="contato-mensagem" th:text="${p.mensagem}"></p>
+    <form th:action="@{/propostas/{id}/status(id=${p.id})}" method="post" class="acoes">
+        <input type="hidden" name="voltar" th:value="${voltar}">
+        <select name="status" aria-label="Situação">
+            <option th:each="s : ${T(br.com.dataflowauto.vendas.dominio.StatusProposta).values()}" th:value="${s.name()}"
+                    th:text="${s.descricao}" th:selected="${s == p.status}"></option>
+        </select>
+        <button type="submit" class="botao botao-secundario">Atualizar</button>
+    </form>
+</li>
+</body>
+</html>

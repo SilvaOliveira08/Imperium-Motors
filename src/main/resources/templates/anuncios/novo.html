@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Anunciar carro')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('anuncios')}"></header>
+<main class="container estreito">
+    <a th:href="@{/anuncios}" class="voltar">← Estoque</a>
+    <h1>Anunciar carro</h1>
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+
+    <div th:if="${fichasProntas.isEmpty()}" class="cartao">
+        <p>Nenhuma ficha técnica concluída disponível. A loja só publica carros com a ficha revisada e concluída, para não anunciar dados errados.</p>
+        <a class="botao" th:href="@{/fichas/nova}">Criar ficha técnica</a>
+        <a class="botao botao-secundario" th:href="@{/fichas}">Ver fichas em revisão</a>
+    </div>
+
+    <form th:unless="${fichasProntas.isEmpty()}" th:action="@{/anuncios}" th:object="${form}" method="post"
+          enctype="multipart/form-data" class="cartao formulario">
+        <label>Ficha técnica do carro
+            <select name="fichaId" required>
+                <option value="">Escolha a placa…</option>
+                <option th:each="f : ${fichasProntas}" th:value="${f.id}" th:selected="${f.id == fichaSelecionada}"
+                        th:text="|${f.veiculo.placaFormatada} · ${f.veiculo.descricao}|"></option>
+            </select>
+            <small>Marca, modelo, motor, câmbio e os demais dados técnicos vêm da ficha concluída.</small>
+        </label>
+        <label>Título do anúncio
+            <input type="text" th:field="*{titulo}" maxlength="120" placeholder="Deixe vazio para usar marca, modelo e versão">
+        </label>
+        <div class="formulario-grade">
+            <label>Preço de venda (R$) <input type="text" inputmode="decimal" th:field="*{preco}" required placeholder="89.900,00"></label>
+            <label>Quilometragem <input type="text" inputmode="numeric" th:field="*{quilometragem}" required placeholder="45.000"></label>
+        </div>
+        <fieldset>
+            <legend>Custo de aquisição (não aparece na loja)</legend>
+            <div class="formulario-grade">
+                <label>Valor pago (R$) <input type="text" inputmode="decimal" th:field="*{valorCompra}" placeholder="75.000,00"></label>
+                <label>Data da compra <input type="date" th:field="*{dataCompra}"></label>
+            </div>
+            <small class="suave">Usado para calcular custo total, lucro e dias em estoque.</small>
+        </fieldset>
+        <label>Descrição <textarea th:field="*{descricao}" rows="4" maxlength="4000" placeholder="Estado de conservação, revisões, opcionais..."></textarea></label>
+        <label class="area-upload">
+            <input type="file" name="fotos" accept="image/jpeg,image/png,image/webp" multiple>
+            Fotos (até 8, JPG, PNG ou WEBP, 5 MB cada). A primeira vira a capa.
+        </label>
+        <label class="checkbox"><input type="checkbox" th:field="*{destaque}"> Mostrar como destaque na loja</label>
+        <div class="acoes"><button type="submit" class="botao">Publicar na loja</button></div>
+    </form>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>

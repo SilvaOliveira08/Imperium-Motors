@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · DataFlow Auto'">DataFlow Auto</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/tema.js}"></script>
+    <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+<header th:fragment="cabecalho(ativo)" class="topo">
+    <div class="container topo-conteudo">
+        <a th:href="@{/painel}" class="marca"><span class="marca-icone">◆</span> DataFlow Auto</a>
+        <nav class="menu" aria-label="Menu do painel">
+            <a th:href="@{/painel}" th:classappend="${ativo == 'inicio'} ? 'ativo'">Painel</a>
+            <a th:href="@{/anuncios}" th:classappend="${ativo == 'anuncios'} ? 'ativo'">Estoque</a>
+            <a th:href="@{/propostas}" th:classappend="${ativo == 'propostas'} ? 'ativo'">Interessados</a>
+            <a th:href="@{/divulgacao}" th:classappend="${ativo == 'divulgacao'} ? 'ativo'">Divulgação</a>
+            <a th:href="@{/fichas}" th:classappend="${ativo == 'fichas'} ? 'ativo'">Fichas técnicas</a>
+            <a th:href="@{/planilhas}" th:classappend="${ativo == 'planilhas'} ? 'ativo'">Planilhas</a>
+            <a th:href="@{/historico}" th:classappend="${ativo == 'historico'} ? 'ativo'">Histórico</a>
+            <a th:href="@{/}" target="_blank" rel="noopener">Ver loja ↗</a>
+            <button type="button" class="link-botao botao-tema" data-alternar-tema title="Alternar tema claro/escuro"><span class="tema-icone" aria-hidden="true">🌙</span><span class="tema-rotulo">Tema escuro</span></button>
+            <form th:action="@{/sair}" method="post" class="form-sair" sec:authorize="isAuthenticated()">
+                <button type="submit" class="link-botao" th:title="|Sair (${#authentication.name})|">Sair</button>
+            </form>
+        </nav>
+    </div>
+</header>
+
+<div th:fragment="mensagens">
+    <div th:if="${sucesso}" class="alerta alerta-sucesso" role="status" th:text="${sucesso}"></div>
+    <div th:if="${erro}" class="alerta alerta-erro" role="alert" th:text="${erro}"></div>
+</div>
+
+<footer th:fragment="rodape" class="rodape">
+    <div class="container">DataFlow Auto · Planilhas, fichas técnicas e loja de veículos · Projeto acadêmico de Programação Orientada a Objetos</div>
+</footer>
+
+<th:block th:fragment="tabelaPlanilha">
+    <div class="tabela-rolagem">
+        <table class="tabela">
+            <thead>
+            <tr>
+                <th class="num">#</th>
+                <th th:each="coluna : ${planilha.colunas}" th:text="${coluna.nome}"
+                    th:classappend="${qualidade.vaziosPorColuna[coluna.nome] > 0} ? 'tem-vazio'"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="linha, it : ${linhas}">
+                <td class="num" th:text="${primeiraLinha + it.index}"></td>
+                <td th:each="coluna : ${planilha.colunas}"
+                    th:with="valor=${linha.getValor(coluna.nome)}"
+                    th:classappend="${#strings.isEmpty(#strings.trim(valor))} ? 'vazio'"
+                    th:text="${valor}"></td>
+            </tr>
+            <tr th:if="${linhas.isEmpty()}">
+                <td th:colspan="${planilha.totalColunas() + 1}" class="vazio-mensagem">A planilha não tem linhas.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <nav class="paginacao" th:if="${totalPaginas > 1}">
+        <a th:if="${pagina > 1}" th:href="@{''(pagina=${pagina - 1})}">← Anterior</a>
+        <span th:text="|Página ${pagina} de ${totalPaginas}|"></span>
+        <a th:if="${pagina < totalPaginas}" th:href="@{''(pagina=${pagina + 1})}">Próxima →</a>
+    </nav>
+</th:block>
+
+<section th:fragment="qualidade" class="cartao">
+    <h2>Qualidade dos dados</h2>
+    <div class="indicadores">
+        <div class="indicador"><strong th:text="${qualidade.totalLinhas}"></strong><span>linhas</span></div>
+        <div class="indicador"><strong th:text="${planilha.totalColunas()}"></strong><span>colunas</span></div>
+        <div class="indicador" th:classappend="${qualidade.linhasDuplicadas > 0} ? 'atencao'">
+            <strong th:text="${qualidade.linhasDuplicadas}"></strong><span>linhas duplicadas</span></div>
+        <div class="indicador" th:classappend="${qualidade.totalVazios() > 0} ? 'atencao'">
+            <strong th:text="${qualidade.totalVazios()}"></strong><span>células vazias</span></div>
+    </div>
+    <p th:if="${qualidade.semProblemas()}" class="ok">Nenhuma duplicata ou campo vazio encontrado.</p>
+    <details th:if="${qualidade.totalVazios() > 0}">
+        <summary>Campos vazios por coluna</summary>
+        <ul class="lista-vazios">
+            <li th:each="item : ${qualidade.vaziosPorColuna}" th:if="${item.value > 0}">
+                <span th:text="${item.key}"></span>:
+                <strong th:text="|${item.value} (${qualidade.percentualVazio(item.key)}%)|"></strong>
+            </li>
+        </ul>
+    </details>
+</section>
+</body>
+</html>

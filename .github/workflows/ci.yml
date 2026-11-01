@@ -1,0 +1,81 @@
+# Build e testes a cada push na branch principal e em todo pull request.
+# Para exigir o build verde antes do merge: Settings > Branches > regra da branch principal >
+# "Require status checks to pass" marcando os jobs "Testes (mvnw verify)", "Testes no PostgreSQL" e "Imagem Docker".
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+# um push novo na mesma branch cancela o build anterior, que já ficou velho
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    name: Testes (mvnw verify)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # o projeto é editado no Windows, então o mvnw pode chegar sem permissão de execução
+      - run: chmod +x mvnw
+
+      - run: ./mvnw -B verify
+
+      - name: Relatórios dos testes
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-testes
+          path: target/surefire-reports/
+          retention-days: 7
+
+  testes-postgres:
+    name: Testes no PostgreSQL
+    # mesmos testes contra o PostgreSQL 16 de produção (Testcontainers; o runner já tem Docker),
+    # pegando o que o H2 em modo PostgreSQL aceita mas o banco de verdade não
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - run: chmod +x mvnw
+
+      - run: ./mvnw -B verify -Ppostgres
+
+      - name: Relatórios dos testes
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-testes-postgres
+          path: target/surefire-reports/
+          retention-days: 7
+
+  imagem:
+    name: Imagem Docker
+    # o Dockerfile pula os testes (-DskipTests); quem garante que eles passaram é este "needs"
+    needs: [testes, testes-postgres]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --tag dataflow-auto:ci .

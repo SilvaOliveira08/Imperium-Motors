@@ -1,0 +1,20 @@
+FICHA TÉCNICA - DADOS DE EXEMPLO (FICTÍCIOS)
+Fabricante: Chevrolet
+Modelo: Onix
+Versão: Premier 1.0 Turbo
+Ano do modelo: 2024
+Motor: 1.0 Turbo, 3 cilindros
+Potência máxima: 116 cv
+Torque máximo: 16,8 kgfm
+Combustível: Flex
+Câmbio: Automático de 6 marchas
+Tração: Dianteira
+Comprimento: 4.474 mm
+Largura: 1.730 mm
+Altura: 1.471 mm
+Entre-eixos: 2.600 mm
+Porta-malas: 469 L
+Tanque: 44 L
+Portas: 4
+Lugares: 5
+Equipamentos de série: Ar-condicionado digital, central multimídia, 6 airbags, câmera de ré

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Planilhas')}"></head>
+<body>
+<header th:replace="~{fragmentos/layout :: cabecalho('planilhas')}"></header>
+<main class="container">
+    <div th:replace="~{fragmentos/layout :: mensagens}"></div>
+    <div class="titulo-pagina">
+        <h1>Planilhas</h1>
+        <a th:if="${emEdicao}" class="botao" th:href="@{/planilhas/trabalho}">Continuar edição →</a>
+    </div>
+
+    <section class="cartao">
+        <h2>Importar</h2>
+        <form th:action="@{/planilhas/importar}" method="post" enctype="multipart/form-data" class="upload">
+            <label class="area-upload">
+                <input type="file" name="arquivos" accept=".xlsx,.csv" multiple required>
+                <span>Escolha um ou mais arquivos <strong>.xlsx</strong> ou <strong>.csv</strong> (até 10 MB cada)</span>
+            </label>
+            <button type="submit" class="botao">Importar</button>
+        </form>
+    </section>
+
+    <section class="cartao">
+        <h2>Arquivos importados</h2>
+        <p th:if="${arquivos.isEmpty()}" class="suave">Nenhuma planilha importada ainda. Experimente os arquivos da pasta <code>exemplos/</code>.</p>
+        <div class="tabela-rolagem" th:unless="${arquivos.isEmpty()}">
+            <table class="tabela">
+                <thead><tr><th>Arquivo</th><th>Tipo</th><th>Tamanho</th><th>Importado em</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="a : ${arquivos}">
+                    <td><a th:href="@{/planilhas/{id}(id=${a.id})}" th:text="${a.nomeOriginal}"></a></td>
+                    <td><span class="etiqueta" th:text="${a.tipo}"></span></td>
+                    <td th:text="${a.tamanhoFormatado}"></td>
+                    <td class="nowrap" th:text="${#temporals.format(a.importadoEm, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td class="acoes">
+                        <a class="botao botao-secundario" th:href="@{/planilhas/{id}(id=${a.id})}">Visualizar</a>
+                        <form th:action="@{/planilhas/{id}/editar(id=${a.id})}" method="post">
+                            <button class="botao" type="submit">Organizar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragmentos/layout :: rodape}"></footer>
+</body>
+</html>
