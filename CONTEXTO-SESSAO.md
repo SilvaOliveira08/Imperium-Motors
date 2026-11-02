@@ -56,7 +56,7 @@ Resumo do que já foi feito neste projeto (DataFlow Auto, Java 21 + Spring Boot 
    - Job "Imagem Docker": `docker build`, que só roda depois dos testes (`needs`). O Dockerfile continua com `-DskipTests` e um comentário explicando por quê.
    - Dependabot semanal para maven (com o Spring Boot agrupado), github-actions e docker.
    - `./mvnw -B verify` passa localmente. O build da imagem **não foi testado**: não há Docker nesta máquina.
-   - **Ainda não roda**: a pasta não é um repositório git (sem `.git`, e o git não está instalado). Falta subir para o GitHub e ativar a proteção de branch (Settings > Branches > "Require status checks").
+   - Projeto no GitHub desde 01/11/2026 (veja "Repositório" no fim deste arquivo): o CI roda a cada push.
 9. **A11, testes contra PostgreSQL** (`pom.xml`, `src/test/resources/application.properties`, `FichaFontesIntegracaoTest`, `ci.yml`, README, SDD, CLAUDE.md)
    - Dependência `org.testcontainers:postgresql` (escopo test; versão do Spring Boot) e perfil Maven `postgres`. O perfil passa ao surefire `spring.datasource.url=jdbc:tc:postgresql:16:///dataflow_teste` com o `ContainerDatabaseDriver`.
    - URL do H2 de teste com `DEFAULT_NULL_ORDERING=HIGH`, igual ao perfil local.
@@ -107,7 +107,13 @@ Resumo do que já foi feito neste projeto (DataFlow Auto, Java 21 + Spring Boot 
 6. ~~**A7**~~ (feito).
 7. ~~**A8**~~ (feito).
 8. ~~**A9**~~ (feito). **Todos os itens C e A do relatório estão corrigidos** (A6 só o passo 1).
-9. Próximo: os itens médios (M1–M27) do `grill-report-2026-11-01.md`, e subir o projeto para o GitHub para o CI rodar.
+9. Próximo: os itens médios (M1–M27) do `grill-report-2026-11-01.md`.
+
+## Repositório
+- GitHub (privado): https://github.com/SilvaOliveira08/Dataflow-revendedora, branch `main`. Primeiro commit: `871f049`.
+- Git 2.56 instalado pelo winget (`C:\Program Files\Git\cmd\git.exe`). Autor configurado só neste repositório: `SilvaOliveira08 <pedroholiveira0204@gmail.com>`.
+- O push precisa do login no navegador (Git Credential Manager): roda num terminal do app, não no shell não interativo.
+- Repositório privado no plano gratuito não tem proteção de branch ("Require status checks"); ela exige GitHub Pro ou repositório público. O CI roda do mesmo jeito, só não bloqueia o merge.
 5. Depois disso, seguir as fases do `grill-report-2026-11-01.md`.
 
 ## Preferências do dono do projeto
