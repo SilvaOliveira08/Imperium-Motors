@@ -1,4 +1,4 @@
-# SDD — DataFlow Auto
+# SDD — Imperium Motors
 
 > **Software Design Document** · Plataforma Inteligente de Automação de Dados
 > Status: **MVP implementado (v0.2)** · Última atualização: 18/10/2026
@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |---|---|
-| Projeto | DataFlow Auto (nome provisório; alternativas: PlanilhaPro, AutoData, DataFlow Intelligence) |
+| Projeto | Imperium Motors (antes chamado DataFlow Auto) |
 | Subtítulo | Plataforma inteligente para organização de planilhas e fichas técnicas automotivas |
 | Cliente | _a preencher (ex.: concessionária / setor administrativo)_ |
 | Integrantes | _a preencher_ |

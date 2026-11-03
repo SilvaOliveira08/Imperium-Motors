@@ -78,4 +78,4 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - run: docker build --tag dataflow-auto:ci .
+      - run: docker build --tag imperium-motors:ci .

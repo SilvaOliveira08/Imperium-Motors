@@ -49,7 +49,7 @@ public class GeradorFichaPdf {
             documento.addTitle(publico
                     ? "Ficha técnica " + ficha.getVeiculo().getDescricao()
                     : "Ficha técnica " + ficha.getVeiculo().getPlacaFormatada());
-            documento.addCreator("DataFlow Auto");
+            documento.addCreator("Imperium Motors");
             documento.open();
 
             Font titulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, COR_TITULO);

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-DataFlow Auto: academic OOP project (Java 21 + Spring Boot 3.4, Thymeleaf, JPA, Flyway). It combines spreadsheet cleanup/consolidation, vehicle technical sheets ("fichas técnicas") with per-field provenance, and a used-car store (public site + staff panel). **All code, identifiers, UI text, commit-facing docs and comments are in Brazilian Portuguese** — keep new code consistent with that.
+Imperium Motors: academic OOP project (Java 21 + Spring Boot 3.4, Thymeleaf, JPA, Flyway). It combines spreadsheet cleanup/consolidation, vehicle technical sheets ("fichas técnicas") with per-field provenance, and a used-car store (public site + staff panel). **All code, identifiers, UI text, commit-facing docs and comments are in Brazilian Portuguese** — keep new code consistent with that.
 
 Design decisions (ADRs D01–D16), requirements and diagrams live in `docs/SDD.md`; the sprint backlog is `docs/ISSUES.md`. When a change alters architecture, requirements or test counts, those docs (and the README) are expected to be updated too.
 

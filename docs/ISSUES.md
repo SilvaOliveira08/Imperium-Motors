@@ -1,4 +1,4 @@
-# Backlog — DataFlow Auto (4 sprints)
+# Backlog — Imperium Motors (4 sprints)
 
 Pronto para virar issues no GitHub Projects. Cada issue tem estimativa em pontos (1, 2, 3, 5, 8), prioridade (Alta, Média, Baixa), labels e critério de aceite. Os RFs se referem a `docs/SDD.md`.
 

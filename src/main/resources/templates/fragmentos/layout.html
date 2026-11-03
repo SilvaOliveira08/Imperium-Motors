@@ -3,7 +3,7 @@
 <head th:fragment="head(titulo)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${titulo} + ' · DataFlow Auto'">DataFlow Auto</title>
+    <title th:text="${titulo} + ' · Imperium Motors'">Imperium Motors</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <script th:src="@{/js/tema.js}"></script>
     <script th:src="@{/js/app.js}" defer></script>
@@ -11,7 +11,7 @@
 <body>
 <header th:fragment="cabecalho(ativo)" class="topo">
     <div class="container topo-conteudo">
-        <a th:href="@{/painel}" class="marca"><span class="marca-icone">◆</span> DataFlow Auto</a>
+        <a th:href="@{/painel}" class="marca"><span class="marca-icone">◆</span> Imperium Motors</a>
         <nav class="menu" aria-label="Menu do painel">
             <a th:href="@{/painel}" th:classappend="${ativo == 'inicio'} ? 'ativo'">Painel</a>
             <a th:href="@{/anuncios}" th:classappend="${ativo == 'anuncios'} ? 'ativo'">Estoque</a>
@@ -35,7 +35,7 @@
 </div>
 
 <footer th:fragment="rodape" class="rodape">
-    <div class="container">DataFlow Auto · Planilhas, fichas técnicas e loja de veículos · Projeto acadêmico de Programação Orientada a Objetos</div>
+    <div class="container">Imperium Motors · Planilhas, fichas técnicas e loja de veículos · Projeto acadêmico de Programação Orientada a Objetos</div>
 </footer>
 
 <th:block th:fragment="tabelaPlanilha">

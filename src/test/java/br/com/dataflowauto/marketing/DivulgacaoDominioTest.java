@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class DivulgacaoDominioTest {
 
     private static final String LINK = "https://loja.exemplo.com.br/loja/carros/7";
-    private static final GeradorTextos.Vitrine LOJA = new GeradorTextos.Vitrine("Vértice Veículos",
+    private static final GeradorTextos.Vitrine LOJA = new GeradorTextos.Vitrine("Imperium Motors",
             "Av. das Amoreiras, 1000 - Campinas/SP", "Campinas", "(19) 99999-0000", "1,79% a.m.");
 
     private static Anuncio polo() {

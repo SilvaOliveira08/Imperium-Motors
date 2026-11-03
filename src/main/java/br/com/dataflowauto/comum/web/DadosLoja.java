@@ -15,7 +15,7 @@ public class DadosLoja {
     private final String endereco;
     private final BigDecimal taxaFinanciamento;
 
-    public DadosLoja(@Value("${dataflow.loja.nome:Vértice Veículos}") String nome,
+    public DadosLoja(@Value("${dataflow.loja.nome:Imperium Motors}") String nome,
                      @Value("${dataflow.loja.telefone:}") String telefone,
                      @Value("${dataflow.loja.whatsapp:}") String whatsapp,
                      @Value("${dataflow.loja.endereco:}") String endereco,

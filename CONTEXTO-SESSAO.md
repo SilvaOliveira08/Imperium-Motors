@@ -1,6 +1,6 @@
 # Contexto da sessão anterior (01/11/2026)
 
-Resumo do que já foi feito neste projeto (DataFlow Auto, Java 21 + Spring Boot 3.4.1) antes de continuar no Claude Code.
+Resumo do que já foi feito neste projeto (Imperium Motors, Java 21 + Spring Boot 3.4.1) antes de continuar no Claude Code.
 
 ## Ambiente
 - Projeto em `Documentos\dataflow-auto` (Windows). JDK 21 (Temurin) instalado, com `JAVA_HOME` configurado.

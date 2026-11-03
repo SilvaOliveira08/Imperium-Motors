@@ -671,7 +671,7 @@ for s in (ws_v, ws_e):
 
 # ---------------------------------------------------------------- Instruções
 ws = ws_ins
-title(ws, "Controle de Despesas da Frota", "Planilha de gestão de despesas veiculares · DataFlow Auto", 3)
+title(ws, "Controle de Despesas da Frota", "Planilha de gestão de despesas veiculares · Imperium Motors", 3)
 ws.column_dimensions["A"].width = 3; ws.column_dimensions["B"].width = 28; ws.column_dimensions["C"].width = 100
 lines = [
     ("h", "Como usar"),

@@ -25,7 +25,7 @@ import static br.com.dataflowauto.fichas.dominio.CampoTecnico.*;
 public class FonteDemonstracao implements FonteDadosVeiculo {
 
     private static final String NADA_CONSTA = "Nada consta";
-    private static final String LOJA = "Vértice Veículos Ltda";
+    private static final String LOJA = "Imperium Motors Ltda";
     private static final String EM_DIA = "IPVA 2026 e licenciamento 2026 pagos";
 
     private static final Map<String, Map<CampoTecnico, String>> BASE = new HashMap<>();

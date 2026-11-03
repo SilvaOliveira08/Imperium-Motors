@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>br.com.dataflowauto</groupId>
-    <artifactId>dataflow-auto</artifactId>
+    <artifactId>imperium-motors</artifactId>
     <version>0.1.0</version>
-    <name>DataFlow Auto</name>
+    <name>Imperium Motors</name>
     <description>Plataforma para organizar planilhas e gerar fichas técnicas automotivas</description>
 
     <properties>
