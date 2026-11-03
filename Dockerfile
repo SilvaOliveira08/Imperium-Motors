@@ -7,7 +7,7 @@ COPY src ./src
 # construída depois que "./mvnw verify" passou
 RUN mvn -q -B package -DskipTests
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=build /app/target/imperium-motors-*.jar app.jar
 EXPOSE 8080
