@@ -37,6 +37,12 @@
                     <span th:if="${anuncio.status.name() == 'RESERVADO'}" class="selo-carro selo-reservado">Reservado</span>
                     <span th:if="${anuncio.fotos.size() > 1}" class="galeria-contador" th:text="|${anuncio.fotos.size()} fotos|"></span>
                 </div>
+                <!-- Anúncio com uma foto só: em vez de uma galeria vazia, oferece pedir mais fotos -->
+                <p class="galeria-uma-foto" th:if="${anuncio.fotos.size() == 1}">
+                    <span>Por enquanto este carro tem uma foto no site.</span>
+                    <a th:if="${@loja.temWhatsapp()}" target="_blank" rel="noopener"
+                       th:href="${@loja.whatsapp('Olá! Pode me mandar mais fotos do ' + anuncio.titulo + ' ' + anuncio.anos + '?')}">Pedir mais fotos pelo WhatsApp</a>
+                </p>
                 <div class="galeria-miniaturas" th:if="${anuncio.fotos.size() > 1}">
                     <a th:each="f, it : ${anuncio.fotos}" th:href="@{/fotos/{n}(n=${f})}" class="miniatura"
                        th:classappend="${it.first} ? 'ativa'" target="_blank">

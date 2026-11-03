@@ -74,8 +74,12 @@
 </footer>
 
 <th:block th:fragment="foto(anuncio, classe)">
-    <img th:if="${anuncio.capa.present}" th:src="@{/fotos/{n}(n=${anuncio.capa.get()})}" th:class="${classe}"
-         th:alt="${anuncio.titulo}" loading="lazy">
+    <!-- A foto aparece inteira; a sobra do quadro é preenchida pela própria foto desfocada, para todos os
+         quadros ficarem do mesmo tamanho sem cortar o carro. -->
+    <span th:if="${anuncio.capa.present}" class="foto-moldura" th:classappend="|${classe}-moldura|">
+        <img class="foto-fundo" th:src="@{/fotos/{n}(n=${anuncio.capa.get()})}" alt="" aria-hidden="true" loading="lazy">
+        <img th:src="@{/fotos/{n}(n=${anuncio.capa.get()})}" th:class="${classe}" th:alt="${anuncio.titulo}" loading="lazy">
+    </span>
     <div th:unless="${anuncio.capa.present}" th:class="${classe} + ' sem-foto'" role="img"
          th:aria-label="|${anuncio.titulo} (ilustração)|">
         <svg th:replace="~{fragmentos/loja :: ilustracao(${@fmt.corCarro(anuncio.cor)})}"></svg>

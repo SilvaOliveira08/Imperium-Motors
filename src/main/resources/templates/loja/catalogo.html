@@ -80,7 +80,8 @@
         </nav>
     </section>
 
-    <section class="container secao" th:unless="${destaques.isEmpty()}">
+    <!-- O primeiro destaque já aparece grande no topo, então aqui entram só os outros -->
+    <section class="container secao" th:unless="${destaques.size() < 2}">
         <div class="secao-topo">
             <div>
                 <h2>Destaques da semana</h2>
@@ -89,7 +90,7 @@
             <a th:href="@{/} + '#estoque'" class="link-seta">Ver o estoque completo</a>
         </div>
         <div class="grade-carros grade-destaques">
-            <th:block th:each="a : ${destaques}"><article th:replace="~{fragmentos/loja :: cartao(${a})}"></article></th:block>
+            <th:block th:each="a, it : ${destaques}" th:unless="${it.first}"><article th:replace="~{fragmentos/loja :: cartao(${a})}"></article></th:block>
         </div>
     </section>
 
@@ -114,10 +115,15 @@
         </div>
     </section>
 
-    <section class="container secao" id="estoque">
+    <!-- Sem filtro e na ordem padrão, a lista não repete os carros que já apareceram nos destaques acima -->
+    <section class="container secao" id="estoque"
+             th:with="ocultarDestaques=${!destaques.isEmpty() and #strings.isEmpty(filtro.ordem) and anuncios.size() > destaques.size()},
+                      idsDestaques=${destaques.![id]},
+                      restantes=${anuncios.size() - destaques.size()}">
         <div class="secao-topo">
             <div>
-                <h2 th:text="${anuncios.size() == 1} ? '1 carro encontrado' : |${anuncios.size()} carros encontrados|">carros</h2>
+                <h2 th:if="${ocultarDestaques}" th:text="${restantes == 1} ? 'Mais 1 carro no pátio' : |Mais ${restantes} carros no pátio|">carros</h2>
+                <h2 th:unless="${ocultarDestaques}" th:text="${anuncios.size() == 1} ? '1 carro encontrado' : |${anuncios.size()} carros encontrados|">carros</h2>
             </div>
             <div class="filtros-ativos" th:if="${filtro.ativo()}">
                 <span class="filtro-chip" th:if="${!#strings.isEmpty(filtro.busca)}" th:text="|“${filtro.busca}”|"></span>
@@ -190,7 +196,7 @@
                     <a th:unless="${totalNaLoja == 0}" th:href="@{/} + '#estoque'" class="botao botao-destaque">Ver todos os carros</a>
                 </div>
                 <div class="grade-carros">
-                    <th:block th:each="a : ${anuncios}"><article th:replace="~{fragmentos/loja :: cartao(${a})}"></article></th:block>
+                    <th:block th:each="a : ${anuncios}" th:unless="${ocultarDestaques and #lists.contains(idsDestaques, a.id)}"><article th:replace="~{fragmentos/loja :: cartao(${a})}"></article></th:block>
                 </div>
                 <p class="nota-parcela" th:unless="${anuncios.isEmpty()}">* Parcela de referência com 30% de entrada em 48x, taxa de <span th:text="${@loja.taxaFormatada}"></span>. Sujeita à análise de crédito.</p>
             </section>

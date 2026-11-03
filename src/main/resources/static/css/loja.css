@@ -126,6 +126,12 @@ body.loja a { color: var(--primaria); }
 .loja .hero-vitrine { color: inherit; }
 .hero-vitrine-foto { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; object-position: center; display: block; border-radius: 20px; background: var(--fundo); }
 .hero-vitrine div.sem-foto { border-radius: 20px; }
+
+/* Foto inteira e quadros do mesmo tamanho: a sobra do quadro é preenchida pela própria foto desfocada */
+.foto-moldura { position: relative; display: block; overflow: hidden; background: var(--fundo); isolation: isolate; }
+.foto-moldura .foto-fundo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(22px) saturate(1.1); transform: scale(1.2); opacity: .6; z-index: -1; }
+.foto-moldura > img:not(.foto-fundo) { position: relative; background: transparent; }
+.hero-vitrine-foto-moldura { border-radius: 20px; }
 .placa-etiqueta { position: absolute; left: 20px; bottom: -22px; min-width: 250px; background: #fff; color: #1b1f24; border: 2px solid #1b1f24; border-radius: 10px; overflow: hidden; box-shadow: 0 14px 30px rgba(27, 31, 36, .22); }
 .placa-faixa { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #1d3fa8; color: #fff; font-size: .74rem; font-weight: 700; letter-spacing: .02em; padding: 3px 10px; }
 .placa-faixa .bandeira { width: 16px; height: 11px; border-radius: 2px; background: linear-gradient(135deg, #1f9d55 50%, #ffcc29 50%); }
@@ -170,7 +176,12 @@ body.loja a { color: var(--primaria); }
 .loja .link-seta { font-weight: 700; text-decoration: none; white-space: nowrap; }
 .loja .link-seta:hover { text-decoration: underline; }
 
-.marcas { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: thin; }
+/* No computador as marcas quebram em linhas; no celular continuam arrastáveis, sem barra de rolagem aparente */
+.marcas { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 2px 10px; }
+@media (max-width: 760px) {
+    .marcas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .marcas::-webkit-scrollbar { display: none; }
+}
 .loja .marca-chip { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 8px; background: var(--superficie); border: 1px solid var(--borda); border-radius: 10px; padding: 10px 16px; text-decoration: none; color: var(--texto); transition: border-color .15s, background .15s; }
 .loja .marca-chip:hover { border-color: var(--primaria); }
 .loja .marca-chip.ativa { border-color: var(--primaria); background: var(--primaria-fundo); }
@@ -313,6 +324,9 @@ div.sem-foto { display: flex; align-items: center; justify-content: center; back
 .miniatura:hover { opacity: 1; }
 .miniatura.ativa { border-color: var(--primaria); opacity: 1; }
 .miniatura img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; object-position: center; display: block; background: var(--fundo); }
+.galeria-uma-foto { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 10px 14px; border: 1px dashed var(--borda); border-radius: 12px; color: var(--texto-suave); font-size: .9rem; }
+.loja .galeria-uma-foto a { font-weight: 700; text-decoration: none; white-space: nowrap; }
+.loja .galeria-uma-foto a:hover { text-decoration: underline; }
 .galeria-contador { position: absolute; right: 12px; bottom: 12px; background: rgba(11, 15, 23, .78); color: #fff; font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
 
 .ancoras { position: sticky; top: 68px; z-index: 20; background: var(--fundo); margin: 12px 0 8px; border-bottom: 1px solid var(--borda); }
@@ -320,17 +334,26 @@ div.sem-foto { display: flex; align-items: center; justify-content: center; back
 .loja .ancoras a { padding: 12px 14px; white-space: nowrap; color: var(--texto-suave); text-decoration: none; font-weight: 700; font-size: .9rem; border-bottom: 3px solid transparent; }
 .loja .ancoras a:hover { color: var(--texto); border-color: var(--destaque); }
 @media (max-width: 900px) { .ancoras { top: 92px; } }
+/* No celular os atalhos passam da tela: o degradê na borda mostra que dá para arrastar para o lado */
+@media (max-width: 700px) {
+    .ancoras::after { content: ""; position: absolute; top: 0; right: 0; bottom: 1px; width: 40px; pointer-events: none; background: linear-gradient(to right, transparent, var(--fundo)); }
+    .loja .ancoras a { padding: 12px 10px; }
+}
 
 .bloco { background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio-g); padding: 24px; margin-bottom: 20px; box-shadow: var(--sombra-cartao); scroll-margin-top: 140px; }
 .bloco > h2, .bloco-topo h2 { font-size: 1.3rem; font-weight: 800; margin: 0 0 16px; }
 .bloco-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .bloco-topo a { font-weight: 700; text-decoration: none; }
 
-.icones-carro { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
-.icones-carro li { display: flex; gap: 12px; align-items: center; background: var(--fundo); border-radius: 12px; padding: 12px 14px; }
+/* 3 colunas (2 no celular): as 6 informações ficam em duas linhas completas, sem item sobrando */
+.icones-carro { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.icones-carro li { display: flex; gap: 12px; align-items: center; min-width: 0; background: var(--fundo); border-radius: 12px; padding: 12px 14px; }
+.icones-carro li > div { min-width: 0; }
+/* no celular o ícone fica em cima do texto, para as palavras caberem inteiras */
+@media (max-width: 560px) { .icones-carro { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .icones-carro li { flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px; } .icones-carro svg { width: 22px; height: 22px; } }
 .icones-carro svg { flex: none; width: 26px; height: 26px; stroke: var(--destaque); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.icones-carro span { display: block; font-size: .82rem; color: var(--texto-suave); font-weight: 600; }
-.icones-carro strong { display: block; font-size: .98rem; }
+.icones-carro span { display: block; font-size: .82rem; color: var(--texto-suave); font-weight: 600; overflow-wrap: break-word; }
+.icones-carro strong { display: block; font-size: .98rem; line-height: 1.25; overflow-wrap: break-word; }
 .descricao-carro { margin-top: 22px; }
 .descricao-carro h3 { font-size: 1.05rem; margin: 0 0 6px; }
 .descricao-carro p { white-space: pre-line; margin: 0; color: var(--texto); }
@@ -392,6 +415,7 @@ div.sem-foto { display: flex; align-items: center; justify-content: center; back
     .detalhe-lateral { order: 2; }
     .detalhe-principal > :not(.galeria) { order: 3; }
 }
-.grade-destaques { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+/* auto-fill: com 2 destaques os cartões mantêm o tamanho normal em vez de esticar */
+.grade-destaques { grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
 .especificacoes dd.porta-malas-duplo span { display: block; }
 .especificacoes dd.porta-malas-duplo span + span { color: var(--texto-suave); font-weight: 500; }

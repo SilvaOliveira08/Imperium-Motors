@@ -148,13 +148,15 @@ function configurarContatoLoja() {
 
 // Clicar numa miniatura troca a foto principal em vez de abrir a imagem.
 function configurarGaleria() {
-    const principal = document.querySelector('.galeria-principal img');
+    const principal = document.querySelector('.galeria-principal img.galeria-foto');
+    const fundo = document.querySelector('.galeria-principal img.foto-fundo');
     const miniaturas = document.querySelectorAll('.galeria-miniaturas .miniatura');
     if (!principal || miniaturas.length === 0) return;
     miniaturas.forEach((link) => {
         link.addEventListener('click', (evento) => {
             evento.preventDefault();
             principal.src = link.href;
+            if (fundo) fundo.src = link.href;
             miniaturas.forEach((m) => m.classList.toggle('ativa', m === link));
         });
     });
