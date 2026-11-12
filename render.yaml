@@ -1,0 +1,39 @@
+# Blueprint da Render: na Render, "New > Blueprint" e escolha este repositório.
+# A aplicação roda pela imagem do Dockerfile; o banco é o PostgreSQL do Supabase.
+# Variáveis com "sync: false" são pedidas no painel da Render na primeira vez (nunca coloque segredos aqui).
+services:
+  - type: web
+    name: imperium-motors
+    runtime: docker
+    plan: free
+    region: virginia
+    # a loja pública responde sem login; se o banco não conectar, o deploy não é liberado
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # Supabase > Connect > Session pooler, no formato jdbc:postgresql://HOST:5432/postgres?sslmode=require
+      - key: DB_URL
+        sync: false
+      # no Session pooler o usuário é postgres.<referência-do-projeto>
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_POOL_MAXIMO
+        value: "5"
+      # obrigatória, com pelo menos 10 caracteres
+      - key: DATAFLOW_ADMIN_SENHA
+        sync: false
+      # endereço público, ex.: https://imperium-motors.onrender.com (usado nos links dos anúncios e do e-mail)
+      - key: DATAFLOW_LOJA_SITE
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      # quem recebe o aviso de novo contato
+      - key: DATAFLOW_AVISO_EMAIL
+        sync: false
+      # o plano grátis tem 512 MB: deixa a JVM usar até 75% disso
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75"

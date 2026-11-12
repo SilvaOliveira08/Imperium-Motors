@@ -71,7 +71,7 @@ As tabelas são criadas automaticamente pelo Flyway (`src/main/resources/db/migr
 ./mvnw test
 ```
 
-São 116 testes: unidade das regras de negócio (regras de transformação, consolidação, leitores e escritores, ficha técnica, interpretação de documentos, anúncio, venda, rentabilidade, financiamento, filtros da loja, interessados) e integração dos fluxos completos pela camada web com H2 em memória, incluindo login, CSRF e o fluxo ficha → anúncio → loja → contato → despesas (manual e por planilha) → venda → relatórios.
+São 120 testes: unidade das regras de negócio (regras de transformação, consolidação, leitores e escritores, ficha técnica, interpretação de documentos, anúncio, venda, rentabilidade, financiamento, filtros da loja, interessados) e integração dos fluxos completos pela camada web com H2 em memória, incluindo login, CSRF e o fluxo ficha → anúncio → loja → contato → despesas (manual e por planilha) → venda → relatórios.
 
 Por padrão os testes usam H2 em memória (modo PostgreSQL), que é rápido e não precisa de nada instalado. Para rodar os mesmos testes contra um PostgreSQL 16 de verdade, num container criado pelo Testcontainers (precisa de Docker):
 
@@ -80,6 +80,38 @@ Por padrão os testes usam H2 em memória (modo PostgreSQL), que é rápido e n�
 ```
 
 No GitHub, o CI (`.github/workflows/ci.yml`) roda `./mvnw -B verify` com H2 e com `-Ppostgres` a cada push na branch principal e em todo pull request, e depois monta a imagem Docker. O Dependabot (`.github/dependabot.yml`) abre toda semana pull requests com atualizações do Maven, das Actions e da imagem base.
+
+## Publicar na internet (Supabase + Render + Resend + Sentry)
+
+Tudo com plano grátis, bom para demonstração e portfólio. Nenhuma chave vai para o repositório: todas ficam nas variáveis de ambiente da Render.
+
+| Serviço | Papel | O que configurar |
+|---|---|---|
+| [Supabase](https://supabase.com) | Banco PostgreSQL | Crie o projeto (de preferência na região `us-east-1`, perto da Render). Em **Connect → Session pooler** copie host, usuário (`postgres.<ref>`) e senha. |
+| [Render](https://render.com) | Roda a aplicação pelo `Dockerfile` | **New → Blueprint**, escolha este repositório: o `render.yaml` cria o serviço e pede as variáveis abaixo. |
+| [Resend](https://resend.com) | E-mail para a equipe a cada contato pelo site | Crie uma API key. Sem domínio próprio, o aviso só pode ir para o e-mail da sua conta Resend. |
+| [Sentry](https://sentry.io) | Avisa quando a aplicação dá erro | Crie um projeto Java/Spring Boot e copie o DSN. |
+
+Variáveis pedidas pela Render:
+
+```text
+DB_URL=jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+DB_USER=postgres.<referência-do-projeto>
+DB_PASSWORD=<senha do banco no Supabase>
+DATAFLOW_ADMIN_SENHA=<pelo menos 10 caracteres>
+DATAFLOW_LOJA_SITE=https://imperium-motors.onrender.com
+SENTRY_DSN=<DSN do Sentry>              # opcional
+RESEND_API_KEY=re_...                   # opcional
+DATAFLOW_AVISO_EMAIL=<seu e-mail>       # opcional, junto com a chave do Resend
+```
+
+As tabelas são criadas pelo Flyway na primeira subida. Use a porta **5432 (Session pooler)**, não a 6543: o modo transação não aceita os *prepared statements* do driver JDBC, e a conexão direta do Supabase só funciona por IPv6.
+
+Limites do plano grátis, para não ser pego de surpresa:
+
+- A Render desliga o serviço depois de 15 minutos sem acesso; a próxima visita espera cerca de um minuto até ele voltar.
+- O disco da Render é apagado a cada deploy ou reinício: **fotos dos anúncios e arquivos enviados se perdem** (o banco no Supabase fica). Para a demonstração, use o botão **Carregar carros de demonstração** depois de cada deploy. Guardar as fotos no Supabase Storage é a próxima evolução.
+- O Supabase pausa projetos grátis que ficam muito tempo sem uso; dá para reativar pelo painel.
 
 ## Roteiro de demonstração
 
@@ -115,6 +147,11 @@ Placas da base de demonstração: `ABC1D23`, `BRA2E19`, `XYZ9876`. Também dá p
 | `DATAFLOW_TOMCAT_DIR` | `./dados/tomcat` | Pasta de trabalho do servidor (arquivos temporários dos uploads); fica fora de `/tmp`, que o sistema limpa |
 | `DATAFLOW_LOJA_NOME`, `DATAFLOW_LOJA_TELEFONE`, `DATAFLOW_LOJA_WHATSAPP`, `DATAFLOW_LOJA_ENDERECO` | dados fictícios | Contato exibido no site |
 | `DATAFLOW_TAXA_FINANCIAMENTO` | `1.79` | Taxa mensal (%) usada na simulação |
+| `PORT` | `8080` | Porta HTTP (a Render define sozinha) |
+| `DB_POOL_MAXIMO` | `10` | Máximo de conexões abertas com o banco (use 5 no Supabase grátis) |
+| `RESEND_API_KEY`, `DATAFLOW_AVISO_EMAIL` | vazio | Aviso por e-mail a cada contato pelo site; desligado se algum estiver vazio |
+| `DATAFLOW_AVISO_REMETENTE` | `Imperium Motors <onboarding@resend.dev>` | Remetente do aviso (troque ao verificar um domínio no Resend) |
+| `SENTRY_DSN`, `SENTRY_AMBIENTE` | vazio, `producao` | Envio de erros para o Sentry; desligado sem DSN. Não envia IP, cookies nem dados de formulário |
 
 ## Estrutura
 

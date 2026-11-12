@@ -9,6 +9,7 @@ import br.com.dataflowauto.vendas.dominio.NovaProposta;
 import br.com.dataflowauto.vendas.dominio.Proposta;
 import br.com.dataflowauto.vendas.dominio.StatusProposta;
 import br.com.dataflowauto.vendas.infra.PropostaRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,11 +22,14 @@ public class PropostaService {
     private final PropostaRepository propostas;
     private final AnuncioService anuncios;
     private final HistoricoService historico;
+    private final ApplicationEventPublisher eventos;
 
-    public PropostaService(PropostaRepository propostas, AnuncioService anuncios, HistoricoService historico) {
+    public PropostaService(PropostaRepository propostas, AnuncioService anuncios, HistoricoService historico,
+                           ApplicationEventPublisher eventos) {
         this.propostas = propostas;
         this.anuncios = anuncios;
         this.historico = historico;
+        this.eventos = eventos;
     }
 
     @Transactional
@@ -42,6 +46,17 @@ public class PropostaService {
         Proposta proposta = propostas.save(nova);
         historico.registrar(TipoOperacao.PROPOSTA, proposta.getTipo().getDescricao() + " de " + proposta.getNome()
                 + " para " + anuncio.getTitulo());
+        return proposta;
+    }
+
+    /**
+     * Contato enviado por um visitante no site: além de registrar, avisa a equipe (e-mail, se configurado).
+     * A carga de demonstração usa {@link #registrar} direto, para não disparar avisos de contatos fictícios.
+     */
+    @Transactional
+    public Proposta registrarPeloSite(Long anuncioId, NovaProposta dados, CanalDivulgacao origem) {
+        Proposta proposta = registrar(anuncioId, dados, origem);
+        eventos.publishEvent(ContatoRecebido.de(proposta));
         return proposta;
     }
 

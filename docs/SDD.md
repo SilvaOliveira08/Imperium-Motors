@@ -110,6 +110,7 @@ Consultar uma placa **não** garante acesso às especificações técnicas compl
 | Front-end | Thymeleaf + HTML, CSS e JavaScript puro; React como evolução | Menor curva para o MVP; as telas funcionam mesmo sem JavaScript. |
 | Testes | JUnit 5, AssertJ, MockMvc, H2 em memória | Unidade das regras de negócio e integração dos fluxos web. |
 | Build e execução | Maven (com wrapper), Docker Compose; perfil `local` com H2 | Execução igual em todas as máquinas, inclusive sem Docker. |
+| Publicação | Render (Docker), Supabase (PostgreSQL), Resend (e-mail), Sentry (erros) | Planos grátis suficientes para a demonstração; tudo configurado por variáveis de ambiente. |
 | Gestão | GitHub Projects (4 sprints), issues, PRs | Exigência da disciplina. |
 
 ## 6. Arquitetura
@@ -401,6 +402,7 @@ Campos previstos na ficha técnica: marca, modelo, versão, ano de fabricação/
 | D14 | Fichas não dependem da loja: `VerificadorUsoFicha` (interface) implementada pelo módulo de vendas | FichaService consultar anúncios diretamente | Inversão de dependência; evita ciclo entre módulos. |
 | D15 | Importação de despesas reaproveita `LeitorXlsx`/`LeitorCsv` e exporta no mesmo formato | Leitor específico | Liga a loja ao módulo de planilhas e à planilha de Controle de Despesas; a exportação pode ser reimportada. |
 | D16 | Valores em `BigDecimal`; simulação pela Tabela Price | `double` | Evita erro de arredondamento em dinheiro. |
+| D17 | Publicação: app na Render pelo Dockerfile, banco no Supabase; aviso de contato pelo Resend e erros no Sentry, ambos opcionais | Vercel (não roda Java/Spring Boot); banco da própria Render (expira no plano grátis) | Reaproveita o Dockerfile e o PostgreSQL que o projeto já usa, sem mudar código de banco. O aviso por e-mail é um evento (`ContatoRecebido`) tratado depois do commit e fora da requisição: se o Resend falhar, o contato continua gravado e o visitante não espera. A carga de demonstração não dispara avisos. |
 | D12 | CSV exportado com `;`, UTF-8 com BOM e proteção contra fórmulas | CSV com vírgula | É o formato que o Excel em português abre corretamente; a proteção evita injeção de fórmulas. |
 
 ## 10. Segurança e privacidade
@@ -414,10 +416,11 @@ Campos previstos na ficha técnica: marca, modelo, versão, ano de fabricação/
 - Fotos validadas pela assinatura (JPG, PNG, WEBP), até 5 MB, salvas com nome UUID fora da pasta pública; o nome é validado antes de abrir o arquivo.
 - A página pública não mostra placa completa, chassi, custos nem dados de clientes.
 - Integridade: cada carro tem no máximo um anúncio em andamento (não vendido), garantido também pelo banco (coluna única `anuncio.veiculo_em_andamento_id`, migração V6). `Anuncio`, `FichaTecnica` e `Proposta` têm `@Version`: se duas pessoas gravarem o mesmo registro ao mesmo tempo, a segunda recebe um aviso em vez de sobrescrever a primeira.
-- Chaves de API em variáveis de ambiente, nunca no repositório.
+- Chaves de API em variáveis de ambiente, nunca no repositório (inclusive `render.yaml`, que só declara os nomes).
+- O e-mail de aviso de contato vai só para a equipe; o log de falha do envio registra o número do contato, sem dados do cliente. O Sentry roda com `send-default-pii=false` (sem IP, cookies ou dados de formulário).
 
 ## 11. Testes
-116 testes automatizados (`./mvnw test`), todos passando. Por padrão rodam em H2 (modo PostgreSQL); com `./mvnw verify -Ppostgres` os mesmos testes rodam num PostgreSQL 16 via Testcontainers, e o CI roda as duas versões.
+120 testes automatizados (`./mvnw test`), todos passando. Por padrão rodam em H2 (modo PostgreSQL); com `./mvnw verify -Ppostgres` os mesmos testes rodam num PostgreSQL 16 via Testcontainers, e o CI roda as duas versões.
 - Unidade: cada `RegraTransformacao` e cada `TipoPadronizacao`, `ConsolidadorPlanilhas` (junções interna, à esquerda e completa), `AnalisadorQualidade`, leitores e escritores (ida e volta XLSX/CSV, codificação, separador, fórmulas), `FichaTecnica` (status, prioridade de fontes, conclusão), `Placa`, `InterpretadorDocumento` e fontes de dados.
 - Unidade da loja: anúncio (só de ficha concluída, sai da loja se a ficha voltar para revisão), venda e validações, rentabilidade prevista e realizada, Tabela Price, `Dinheiro`, categorias por sinônimo, interessados e filtros.
 - Integração da loja: login e CSRF, ficha → anúncio com foto → loja e filtros → página e PDF → contato público → despesa manual e importada de CSV → venda → relatórios XLSX; carga de demonstração; foto inválida e caminho malicioso.
@@ -425,6 +428,7 @@ Campos previstos na ficha técnica: marca, modelo, versão, ano de fabricação/
 - Integração (MockMvc + H2): importar → organizar → combinar → exportar → desfazer; aba antiga não altera nem exporta a planilha aberta em outra aba; criar ficha com PDF → revisar → concluir → gerar PDF; arquivos inválidos, placa inválida e ficha inexistente.
 - Integração das fontes de dados: API de placa fora do ar fica registrada como "indisponível" (não como "0 encontrados") e gera aviso na tela; as fontes são consultadas fora de transação, sem prender conexão com o banco.
 - Integração de integridade: mesma placa com duas fichas não gera dois anúncios; o banco recusa o segundo anúncio mesmo sem passar pelo serviço (clique duplo); venda antiga não pode ser desfeita se o carro já foi anunciado de novo; duas alterações simultâneas no mesmo anúncio não se sobrescrevem.
+- Aviso de contato por e-mail: envio pelo Resend com os dados certos (servidor falso), falha do Resend não lança exceção, desligado sem chave ou destinatário, assunto sem quebra de linha.
 - Desempenho do catálogo: a página inicial da loja faz o mesmo número de consultas ao banco (3) com 2 ou com 5 carros, contadas pelas estatísticas do Hibernate.
 
 ## 12. Metodologia de uso da IA
@@ -452,7 +456,7 @@ Quatro sprints no GitHub Projects (datas sugeridas pela equipe, não oficiais):
 As issues de cada sprint, com estimativa e prioridade, estão em `docs/ISSUES.md`.
 
 ## 14. Como executar
-Ver `README.md`. Resumo: `docker compose up -d banco` e `./mvnw spring-boot:run`; sem Docker, `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`. Acesse http://localhost:8080. Arquivos de demonstração em `exemplos/`.
+Ver `README.md`. Resumo: `docker compose up -d banco` e `./mvnw spring-boot:run`; sem Docker, `./mvnw spring-boot:run -Dspring-boot.run.profiles=local`. Acesse http://localhost:8080. Arquivos de demonstração em `exemplos/`. Para publicar: seção "Publicar na internet" do README (`render.yaml`).
 
 ## 15. Histórico de alterações
 
@@ -461,3 +465,4 @@ Ver `README.md`. Resumo: `docker compose up -d banco` e `./mvnw spring-boot:run`
 | 18/10/2026 | 0.1 | Rascunho inicial: escopo, requisitos, arquitetura, entidades, banco e sprints. |
 | 21/10/2026 | 0.3 | Loja de veículos: site público, anúncios a partir das fichas, custos e importação de despesas por planilha, interessados, vendas, painel e relatórios, login da equipe; RF17 a RF25, decisões D09 e D13 a D16; 81 testes. |
 | 18/10/2026 | 0.2 | MVP implementado: módulos de planilhas e fichas, telas, 64 testes; SDD ajustado ao código (pacotes, classes, banco e decisões D09 a D12). |
+| 12/11/2026 | 0.4 | Publicação na Render + Supabase, aviso de novo contato por e-mail (Resend) e monitoramento de erros (Sentry); decisão D17; 120 testes. |

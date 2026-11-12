@@ -23,6 +23,7 @@
         <commons-csv.version>1.12.0</commons-csv.version>
         <pdfbox.version>3.0.8</pdfbox.version>
         <openpdf.version>2.0.3</openpdf.version>
+        <sentry.version>8.49.0</sentry.version>
     </properties>
 
     <dependencies>
@@ -68,6 +69,13 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Monitoramento de erros em produção (desligado enquanto SENTRY_DSN estiver vazio) -->
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+            <version>${sentry.version}</version>
         </dependency>
 
         <!-- Planilhas -->

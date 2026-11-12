@@ -128,7 +128,7 @@ public class LojaController {
         try {
             NovaProposta dados = new NovaProposta(Conversoes.opcao(TipoProposta.class, tipo), nome, telefone, email,
                     mensagem, Dinheiro.interpretar(valorOferecido), Conversoes.data(dataPreferida, "data preferida"));
-            propostas.registrar(id, dados, (CanalDivulgacao) sessao.getAttribute(ORIGEM_VISITA));
+            propostas.registrarPeloSite(id, dados, (CanalDivulgacao) sessao.getAttribute(ORIGEM_VISITA));
             atributos.addFlashAttribute("sucesso", "Recebemos seu contato, " + nome.trim().split("\\s+")[0]
                     + "! Nossa equipe responde em breve.");
         } catch (RegraNegocioException e) {
